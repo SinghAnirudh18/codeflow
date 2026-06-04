@@ -59,6 +59,9 @@ class IssueListResponse(BaseModel):
     issues: list[IssueResponse]
     total: int
 
+class PledgeRequest(BaseModel):
+    amount: int
+
 
 # ─── Routes ────────────────────────────────────────────────────────────
 
@@ -199,6 +202,34 @@ async def update_issue(
     await issue.save()
 
     return await _issue_to_response(issue)
+
+
+@router.post("/{issue_id}/pledge")
+async def pledge_bounty(
+    issue_id: str,
+    body: PledgeRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Pledge points to an issue to increase its bounty."""
+    if body.amount <= 0:
+        raise HTTPException(status_code=400, detail="Pledge amount must be positive")
+    
+    if current_user.points < body.amount:
+        raise HTTPException(status_code=400, detail="Insufficient points")
+
+    issue = await Issue.get(issue_id)
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+
+    # Deduct from user
+    current_user.points -= body.amount
+    await current_user.save()
+
+    # Add to issue
+    issue.bounty_points += body.amount
+    await issue.save()
+
+    return {"message": "Pledge successful", "new_bounty": issue.bounty_points}
 
 
 @router.delete("/{issue_id}", status_code=status.HTTP_204_NO_CONTENT)

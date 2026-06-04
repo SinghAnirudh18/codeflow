@@ -145,6 +145,100 @@ async def get_default_branch(access_token: str, owner: str, repo: str) -> str:
     return repo_info.get("default_branch", "main")
 
 
+async def get_branch_ref(access_token: str, owner: str, repo: str, branch: str) -> str:
+    """Get the SHA of a branch."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/git/refs/heads/{branch}",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        response.raise_for_status()
+        return response.json()["object"]["sha"]
+
+
+async def create_branch(access_token: str, owner: str, repo: str, new_branch: str, sha: str) -> None:
+    """Create a new branch from a SHA."""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/git/refs",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json={
+                "ref": f"refs/heads/{new_branch}",
+                "sha": sha,
+            }
+        )
+        response.raise_for_status()
+
+
+async def get_file_sha(access_token: str, owner: str, repo: str, path: str, branch: str) -> Optional[str]:
+    """Get the SHA of a specific file."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/contents/{path}?ref={branch}",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        if response.status_code == 404:
+            return None
+        response.raise_for_status()
+        return response.json().get("sha")
+
+
+async def update_file(
+    access_token: str, owner: str, repo: str, path: str, message: str, content: str, branch: str, sha: Optional[str]
+) -> None:
+    """Create or update a file on a specific branch."""
+    async with httpx.AsyncClient() as client:
+        payload = {
+            "message": message,
+            "content": base64.b64encode(content.encode("utf-8")).decode("utf-8"),
+            "branch": branch,
+        }
+        if sha:
+            payload["sha"] = sha
+            
+        response = await client.put(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/contents/{path}",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json=payload,
+        )
+        response.raise_for_status()
+
+
+async def create_pull_request(
+    access_token: str, owner: str, repo: str, title: str, body: str, head: str, base: str
+) -> str:
+    """Create a pull request and return its HTML URL."""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json={
+                "title": title,
+                "body": body,
+                "head": head,
+                "base": base,
+            }
+        )
+        response.raise_for_status()
+        return response.json()["html_url"]
+
+
+
 def parse_github_url(url: str) -> tuple[str, str]:
     """Parse a GitHub URL to extract owner and repo name.
 

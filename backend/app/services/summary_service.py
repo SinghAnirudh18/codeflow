@@ -169,6 +169,57 @@ Describe the project's purpose, architecture, and key technologies used."""
         return _heuristic_repo_summary(files_info)
 
 
+async def analyze_solution(issue_description: str, file_patch: str, solution_description: str) -> str:
+    """Analyze a proposed solution and return an automated code review comment."""
+    if not settings.OPENROUTER_API_KEY or settings.OPENROUTER_API_KEY == "your-openrouter-api-key":
+        return "⚠️ Automated AI Code Review is currently unavailable (API key not configured)."
+
+    try:
+        prompt = f"""You are an expert AI code reviewer. Analyze the proposed solution for an issue.
+
+Issue Description:
+{issue_description}
+
+Solver's Description:
+{solution_description}
+
+Code Patch:
+```diff
+{file_patch or "No code patch provided."}
+```
+
+Provide a brief, constructive code review comment (2-3 paragraphs max).
+If there are obvious bugs, security flaws, or style issues, point them out kindly.
+If the solution looks good, say so! Do NOT use markdown headings, just plain text with basic markdown (bold/code)."""
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{settings.OPENROUTER_BASE_URL}/chat/completions",
+                json={
+                    "model": settings.OPENROUTER_MODEL,
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful and expert code reviewer."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "max_tokens": 400,
+                    "temperature": 0.3,
+                },
+                headers={
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:8000",
+                    "X-Title": "CodeBounty",
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+
+    except Exception as e:
+        print(f"AI solution analysis failed: {e}")
+        return f"⚠️ Automated AI Code Review failed to process this solution."
+
+
 # ─── Fallback heuristics ──────────────────────────────────────────────
 
 def _heuristic_summary(content: str, filename: str, language: str) -> str:

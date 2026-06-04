@@ -2,7 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Code2, Home, GitBranch,
-  Bug, Lightbulb, Trophy, Compass, LogOut, ChevronRight, Zap
+  Bug, Lightbulb, Trophy, Compass, LogOut, ChevronRight, Zap, Flame
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -128,8 +128,15 @@ export default function Navbar() {
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--silver-100)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.name || user.username}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--silver-600)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Zap size={10} /> {user.points ?? 0} pts
+                <div style={{ fontSize: '11px', color: 'var(--silver-600)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Zap size={10} style={{ color: 'var(--warning)' }} /> {user.points ?? 0}
+                  </span>
+                  {user.current_streak > 0 && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ff6b6b' }} title={`${user.current_streak} day streak!`}>
+                      <Flame size={10} /> {user.current_streak}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

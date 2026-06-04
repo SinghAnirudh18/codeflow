@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
+from beanie import PydanticObjectId
 
 from app.models.user import User
 from app.models.repository import Repository
@@ -39,11 +40,24 @@ class DashboardResponse(BaseModel):
 
 
 class LeaderboardEntry(BaseModel):
+    id: str
     rank: int
     username: str
     avatar_url: str
     points: int
     solutions_accepted: int
+
+
+class UserSolutionResponse(BaseModel):
+    id: str
+    issue_id: str
+    issue_title: str
+    repo_name: str
+    description: str
+    points_awarded: int
+    github_pr_url: Optional[str] = None
+    created_at: str
+
 
 
 # ─── Routes ────────────────────────────────────────────────────────────
@@ -155,6 +169,7 @@ async def get_leaderboard(
 
     return [
         LeaderboardEntry(
+            id=str(u.id),
             rank=idx + 1,
             username=u.username,
             avatar_url=u.avatar_url,
@@ -167,7 +182,7 @@ async def get_leaderboard(
 
 @router.get("/{user_id}", response_model=PublicUserResponse)
 async def get_user_profile(
-    user_id: str,
+    user_id: PydanticObjectId,
     current_user: User = Depends(get_optional_user),
 ):
     """Get a user's public profile."""
@@ -186,3 +201,42 @@ async def get_user_profile(
         solutions_accepted=user.solutions_accepted,
         created_at=str(user.created_at),
     )
+
+
+@router.get("/{user_id}/solutions", response_model=list[UserSolutionResponse])
+async def get_user_solutions(
+    user_id: PydanticObjectId,
+):
+    """Get the accepted solutions for a user to display on their portfolio."""
+    user = await User.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    solutions = await Solution.find(
+        Solution.author_id == user_id,
+        Solution.status == SolutionStatus.ACCEPTED
+    ).sort("-created_at").to_list()
+
+    response_list = []
+    for s in solutions:
+        issue = await Issue.get(s.issue_id)
+        repo_name = "Unknown Repo"
+        issue_title = "Unknown Issue"
+        if issue:
+            issue_title = issue.title
+            repo = await Repository.get(issue.repo_id)
+            if repo:
+                repo_name = f"{repo.github_owner}/{repo.github_repo}"
+
+        response_list.append(UserSolutionResponse(
+            id=str(s.id),
+            issue_id=s.issue_id,
+            issue_title=issue_title,
+            repo_name=repo_name,
+            description=s.description,
+            points_awarded=s.points_awarded,
+            github_pr_url=s.github_pr_url,
+            created_at=str(s.created_at)
+        ))
+
+    return response_list

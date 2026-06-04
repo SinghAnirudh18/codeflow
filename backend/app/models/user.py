@@ -24,6 +24,10 @@ class User(Document):
     issues_created: int = 0
     solutions_submitted: int = 0
     solutions_accepted: int = 0
+    # Gamification
+    current_streak: int = 0
+    highest_streak: int = 0
+    last_active_date: Optional[datetime] = None
 
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

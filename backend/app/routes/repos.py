@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.models.user import User
 from app.models.repository import Repository, RepoStatus
-from app.models.file import RepoFile
+from app.models.file import RepoFile, FileVisibility
 from app.middleware.auth_middleware import get_current_user
 from app.services import github_service, file_service
 from app.utils.helpers import is_valid_github_url
@@ -48,6 +48,11 @@ class RepoResponse(BaseModel):
 class RepoListResponse(BaseModel):
     repos: list[RepoResponse]
     total: int
+
+
+class BulkVisibilityRequest(BaseModel):
+    visibility: str = Field(..., description="'public' or 'private'")
+    list_files: bool = Field(False, description="Also mark all public files as listed on Explore")
 
 
 # ─── Routes ────────────────────────────────────────────────────────────
@@ -218,6 +223,57 @@ async def generate_summaries(
     )
 
     return {"message": "Summary generation started", "repo_id": str(repo.id)}
+
+
+@router.patch("/{repo_id}/visibility")
+async def bulk_set_visibility(
+    repo_id: str,
+    body: BulkVisibilityRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Bulk-set visibility for all files in a repository.
+
+    Sets every file to 'public' or 'private'. When setting to public,
+    you can also mark all files as listed on the Explore page.
+    """
+    repo = await Repository.get(repo_id)
+    if not repo:
+        raise HTTPException(status_code=404, detail="Repository not found")
+
+    if repo.owner_id != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    try:
+        new_vis = FileVisibility(body.visibility)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="visibility must be 'public' or 'private'")
+
+    files = await RepoFile.find(RepoFile.repo_id == str(repo.id)).to_list()
+
+    for f in files:
+        f.visibility = new_vis
+        if new_vis == FileVisibility.PUBLIC and body.list_files:
+            f.is_listed = True
+        elif new_vis == FileVisibility.PRIVATE:
+            f.is_listed = False  # can't be listed if private
+        f.updated_at = datetime.now(timezone.utc)
+        await f.save()
+
+    # Refresh repo file counts
+    public_count = sum(1 for f in files if f.visibility == FileVisibility.PUBLIC)
+    listed_count = sum(1 for f in files if f.is_listed)
+    repo.public_files_count = public_count
+    repo.private_files_count = len(files) - public_count
+    repo.listed_files_count = listed_count
+    repo.updated_at = datetime.now(timezone.utc)
+    await repo.save()
+
+    return {
+        "message": f"All {len(files)} files set to {new_vis.value}",
+        "public_files_count": public_count,
+        "private_files_count": len(files) - public_count,
+        "listed_files_count": listed_count,
+    }
 
 
 @router.delete("/{repo_id}", status_code=status.HTTP_204_NO_CONTENT)

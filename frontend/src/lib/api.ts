@@ -59,6 +59,8 @@ export const reposApi = {
   sync: (id: string) => api.post(`/repos/${id}/sync`),
   delete: (id: string) => api.delete(`/repos/${id}`),
   generateSummaries: (id: string) => api.post(`/repos/${id}/generate-summaries`),
+  bulkVisibility: (id: string, visibility: 'public' | 'private', list_files = false) =>
+    api.patch(`/repos/${id}/visibility`, { visibility, list_files }),
 };
 
 // ── Files ────────────────────────────────────────────────────────
@@ -83,6 +85,7 @@ export const issuesApi = {
   get: (id: string) => api.get(`/issues/${id}`),
   update: (id: string, data: Record<string, unknown>) => api.patch(`/issues/${id}`, data),
   delete: (id: string) => api.delete(`/issues/${id}`),
+  pledge: (id: string, amount: number) => api.post(`/issues/${id}/pledge`, { amount }),
 };
 
 // ── Solutions ────────────────────────────────────────────────────
@@ -93,7 +96,9 @@ export const solutionsApi = {
     }),
   list: (issueId: string) => api.get(`/solutions/issues/${issueId}/list`),
   get: (id: string) => api.get(`/solutions/${id}`),
-  review: (id: string, data: Record<string, unknown>) => api.patch(`/solutions/${id}/review`, data),
+  review: (id: string, data: any) => api.patch(`/solutions/${id}/review`, data),
+  addComment: (id: string, body: string) => api.post(`/solutions/${id}/comments`, { body }),
+  syncToGithub: (id: string) => api.post(`/solutions/${id}/sync-github`),
 };
 
 // ── Users ────────────────────────────────────────────────────────
@@ -101,6 +106,30 @@ export const usersApi = {
   dashboard: () => api.get('/users/me/dashboard'),
   leaderboard: (limit?: number) => api.get('/users/leaderboard', { params: { limit } }),
   profile: (id: string) => api.get(`/users/${id}`),
+  solutions: (id: string) => api.get(`/users/${id}/solutions`),
 };
+
+/**
+ * Safely extract a human-readable error message from any Axios error.
+ * Handles:
+ *  - Plain string detail: "Repository not found"
+ *  - Pydantic v2 array:   [{type, loc, msg, input, ctx}, ...]
+ *  - Network errors / no response
+ */
+export function getApiError(e: unknown, fallback = 'An error occurred'): string {
+  const detail = (e as any)?.response?.data?.detail;
+  if (!detail) return (e as any)?.message || fallback;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d: any) => {
+        const loc = Array.isArray(d.loc) ? d.loc.slice(1).join(' → ') : '';
+        const msg = d.msg || JSON.stringify(d);
+        return loc ? `${loc}: ${msg}` : msg;
+      })
+      .join(' | ');
+  }
+  return fallback;
+}
 
 export default api;

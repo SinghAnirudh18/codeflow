@@ -51,6 +51,8 @@ class UserResponse(BaseModel):
     solutions_accepted: int
     created_at: datetime
     last_login: datetime
+    current_streak: int = 0
+    highest_streak: int = 0
 
 
 # ─── Routes ────────────────────────────────────────────────────────────
@@ -192,7 +194,39 @@ async def refresh_access_token(body: RefreshRequest):
 
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
-    """Get current authenticated user's profile."""
+    """Get current authenticated user's profile and check streaks."""
+    
+    # Check streak logic
+    now = datetime.now(timezone.utc)
+    updated = False
+    
+    if current_user.last_active_date is None:
+        current_user.last_active_date = now
+        current_user.current_streak = 1
+        current_user.highest_streak = 1
+        updated = True
+    else:
+        last_date = current_user.last_active_date.date()
+        today = now.date()
+        delta = (today - last_date).days
+        
+        if delta == 1:
+            # Next day login -> increment streak
+            current_user.current_streak += 1
+            if current_user.current_streak > current_user.highest_streak:
+                current_user.highest_streak = current_user.current_streak
+            current_user.points += 5  # Bonus points for streak
+            current_user.last_active_date = now
+            updated = True
+        elif delta > 1:
+            # Streak broken
+            current_user.current_streak = 1
+            current_user.last_active_date = now
+            updated = True
+
+    if updated:
+        await current_user.save()
+
     return UserResponse(
         id=str(current_user.id),
         github_id=current_user.github_id,
@@ -209,6 +243,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
         solutions_accepted=current_user.solutions_accepted,
         created_at=current_user.created_at,
         last_login=current_user.last_login,
+        current_streak=current_user.current_streak,
+        highest_streak=current_user.highest_streak,
     )
 
 

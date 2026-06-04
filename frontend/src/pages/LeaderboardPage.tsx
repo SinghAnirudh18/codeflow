@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Trophy, Medal, Zap, Award } from 'lucide-react';
 import { usersApi } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Entry {
+  id: string;
   rank: number;
   username: string;
   avatar_url: string;
@@ -49,8 +51,10 @@ export default function LeaderboardPage() {
           {/* 2nd */}
           {top3[1] && (
             <div style={{ textAlign: 'center', flex: '0 0 160px' }}>
-              <img src={top3[1].avatar_url} alt={top3[1].username} style={{ width: '56px', height: '56px', borderRadius: '50%', border: '3px solid #C0C0C0', marginBottom: '8px' }} />
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--silver-200)', marginBottom: '4px' }}>{top3[1].username}</div>
+              <Link to={`/users/${top3[1].id}`} style={{ textDecoration: 'none' }}>
+                <img src={top3[1].avatar_url} alt={top3[1].username} style={{ width: '56px', height: '56px', borderRadius: '50%', border: '3px solid #C0C0C0', marginBottom: '8px' }} />
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--silver-200)', marginBottom: '4px' }}>{top3[1].username}</div>
+              </Link>
               <div style={{ fontSize: '20px', fontWeight: 800, color: '#C0C0C0' }}>{top3[1].points}</div>
               <div style={{ fontSize: '11px', color: 'var(--silver-600)', marginTop: '2px' }}>2nd place</div>
               <div style={{
@@ -65,11 +69,13 @@ export default function LeaderboardPage() {
           {/* 1st */}
           {top3[0] && (
             <div style={{ textAlign: 'center', flex: '0 0 180px' }}>
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: '8px' }}>
-                <img src={top3[0].avatar_url} alt={top3[0].username} style={{ width: '72px', height: '72px', borderRadius: '50%', border: '3px solid #FFD700' }} />
-                <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', fontSize: '24px' }}>👑</div>
-              </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--silver-50)', marginBottom: '4px' }}>{top3[0].username}</div>
+              <Link to={`/users/${top3[0].id}`} style={{ textDecoration: 'none' }}>
+                <div style={{ position: 'relative', display: 'inline-block', marginBottom: '8px' }}>
+                  <img src={top3[0].avatar_url} alt={top3[0].username} style={{ width: '72px', height: '72px', borderRadius: '50%', border: '3px solid #FFD700' }} />
+                  <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', fontSize: '24px' }}>👑</div>
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--silver-50)', marginBottom: '4px' }}>{top3[0].username}</div>
+              </Link>
               <div style={{ fontSize: '28px', fontWeight: 900, color: '#FFD700' }}>{top3[0].points}</div>
               <div style={{ fontSize: '11px', color: 'var(--silver-600)', marginTop: '2px' }}>1st place</div>
               <div style={{
@@ -85,8 +91,10 @@ export default function LeaderboardPage() {
           {/* 3rd */}
           {top3[2] && (
             <div style={{ textAlign: 'center', flex: '0 0 160px' }}>
-              <img src={top3[2].avatar_url} alt={top3[2].username} style={{ width: '48px', height: '48px', borderRadius: '50%', border: '3px solid #CD7F32', marginBottom: '8px' }} />
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--silver-200)', marginBottom: '4px' }}>{top3[2].username}</div>
+              <Link to={`/users/${top3[2].id}`} style={{ textDecoration: 'none' }}>
+                <img src={top3[2].avatar_url} alt={top3[2].username} style={{ width: '48px', height: '48px', borderRadius: '50%', border: '3px solid #CD7F32', marginBottom: '8px' }} />
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--silver-200)', marginBottom: '4px' }}>{top3[2].username}</div>
+              </Link>
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#CD7F32' }}>{top3[2].points}</div>
               <div style={{ fontSize: '11px', color: 'var(--silver-600)', marginTop: '2px' }}>3rd place</div>
               <div style={{
@@ -131,12 +139,14 @@ export default function LeaderboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img src={entry.avatar_url} alt={entry.username} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--border)' }} />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: user?.username === entry.username ? 'var(--silver-50)' : 'var(--silver-200)' }}>
-                  {entry.username}
-                  {user?.username === entry.username && (
-                    <span style={{ marginLeft: '8px', fontSize: '11px', color: 'var(--silver-600)', fontWeight: 400 }}>you</span>
-                  )}
-                </div>
+                <Link to={`/users/${entry.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: user?.username === entry.username ? 'var(--silver-50)' : 'var(--silver-200)' }}>
+                    {entry.username}
+                    {user?.username === entry.username && (
+                      <span style={{ marginLeft: '8px', fontSize: '11px', color: 'var(--silver-600)', fontWeight: 400 }}>you</span>
+                    )}
+                  </div>
+                </Link>
               </div>
             </div>
             <div style={{ fontSize: '14px', color: 'var(--silver-400)', textAlign: 'right' }}>

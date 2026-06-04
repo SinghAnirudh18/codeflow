@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GitBranch, Plus, Trash2, RefreshCw, FileCode, Loader2, CheckCircle, XCircle, Clock, Star, GitFork } from 'lucide-react';
-import { reposApi } from '../lib/api';
+import { reposApi, getApiError } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 
 interface Repo {
@@ -64,7 +64,7 @@ export default function ReposPage() {
       setBranch('');
       load();
     } catch (e: any) {
-      toast(e.response?.data?.detail || 'Import failed', 'error');
+      toast(getApiError(e, 'Import failed'), 'error');
     } finally {
       setImporting(false);
     }
@@ -87,7 +87,7 @@ export default function ReposPage() {
       toast('Sync started', 'info');
       load();
     } catch (e: any) {
-      toast(e.response?.data?.detail || 'Sync failed', 'error');
+      toast(getApiError(e, 'Sync failed'), 'error');
     }
   };
 

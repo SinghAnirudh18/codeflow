@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { GitBranch, FileCode, Eye, EyeOff, List, ListX,
-  RefreshCw, Wand2, ArrowLeft, Star, GitFork, Search } from 'lucide-react';
-import { reposApi, filesApi } from '../lib/api';
+  RefreshCw, Wand2, ArrowLeft, Star, GitFork, Search, Globe, Lock } from 'lucide-react';
+import { reposApi, filesApi, getApiError } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 
 interface RepoDetail {
@@ -51,6 +51,8 @@ export default function RepoDetailPage() {
   const [search, setSearch] = useState('');
   const [visFilter, setVisFilter] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showVisModal, setShowVisModal] = useState(false);
+  const [bulkVisLoading, setBulkVisLoading] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -102,7 +104,33 @@ export default function RepoDetailPage() {
       await reposApi.generateSummaries(id);
       toast('AI summary generation started!', 'success');
     } catch (e: any) {
-      toast(e.response?.data?.detail || 'Failed', 'error');
+      toast(getApiError(e, 'Failed'), 'error');
+    }
+  };
+
+  const handleBulkVisibility = async (visibility: 'public' | 'private', listFiles: boolean) => {
+    if (!id) return;
+    setBulkVisLoading(true);
+    try {
+      const res = await reposApi.bulkVisibility(id, visibility, listFiles);
+      toast(res.data.message, 'success');
+      setShowVisModal(false);
+      // Update local file states and repo counts
+      setFiles(f => f.map(x => ({
+        ...x,
+        visibility,
+        is_listed: visibility === 'public' ? (listFiles ? true : x.is_listed) : false,
+      })));
+      setRepo(r => r ? {
+        ...r,
+        public_files_count: res.data.public_files_count,
+        private_files_count: res.data.private_files_count,
+        listed_files_count: res.data.listed_files_count,
+      } : r);
+    } catch (e: any) {
+      toast(getApiError(e, 'Failed to update visibility'), 'error');
+    } finally {
+      setBulkVisLoading(false);
     }
   };
 
@@ -158,6 +186,9 @@ export default function RepoDetailPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={() => setShowVisModal(true)} className="btn btn-secondary btn-sm" id="bulk-visibility-btn">
+              <Globe size={13} /> Make All Public
+            </button>
             <button onClick={handleGenerateSummaries} className="btn btn-ghost btn-sm">
               <Wand2 size={13} /> AI Summaries
             </button>
@@ -278,6 +309,88 @@ export default function RepoDetailPage() {
           </div>
         )}
       </div>
+
+      {/* ── Bulk Visibility Modal ──────────────────────────────────────── */}
+      {showVisModal && (
+        <div className="modal-overlay" onClick={() => !bulkVisLoading && setShowVisModal(false)}>
+          <div className="modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Set Repository Visibility</h2>
+              <button className="modal-close" onClick={() => setShowVisModal(false)} disabled={bulkVisLoading}>✕</button>
+            </div>
+            <p style={{ fontSize: '14px', color: 'var(--silver-400)', marginBottom: '24px', lineHeight: 1.7 }}>
+              This will update <strong>all {repo?.total_files} files</strong> in this repository at once.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              {/* Make Public */}
+              <button
+                id="make-all-public-btn"
+                onClick={() => handleBulkVisibility('public', false)}
+                disabled={bulkVisLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  padding: '16px 18px', borderRadius: '10px', cursor: 'pointer',
+                  background: 'var(--success-dim)', border: '1px solid rgba(74,222,128,0.3)',
+                  color: 'var(--silver-100)', fontFamily: 'var(--font-sans)', textAlign: 'left',
+                  opacity: bulkVisLoading ? 0.5 : 1,
+                }}
+              >
+                <Eye size={20} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>Make All Public</div>
+                  <div style={{ fontSize: '12px', color: 'var(--silver-500)' }}>File content becomes readable by anyone with the link</div>
+                </div>
+              </button>
+
+              {/* Make Public + Listed */}
+              <button
+                id="make-all-public-listed-btn"
+                onClick={() => handleBulkVisibility('public', true)}
+                disabled={bulkVisLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  padding: '16px 18px', borderRadius: '10px', cursor: 'pointer',
+                  background: 'rgba(99,179,237,0.1)', border: '1px solid rgba(99,179,237,0.3)',
+                  color: 'var(--silver-100)', fontFamily: 'var(--font-sans)', textAlign: 'left',
+                  opacity: bulkVisLoading ? 0.5 : 1,
+                }}
+              >
+                <List size={20} style={{ color: 'var(--info)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>Make All Public + Listed</div>
+                  <div style={{ fontSize: '12px', color: 'var(--silver-500)' }}>Public and discoverable on the Explore page</div>
+                </div>
+              </button>
+
+              {/* Make Private */}
+              <button
+                id="make-all-private-btn"
+                onClick={() => handleBulkVisibility('private', false)}
+                disabled={bulkVisLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  padding: '16px 18px', borderRadius: '10px', cursor: 'pointer',
+                  background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+                  color: 'var(--silver-100)', fontFamily: 'var(--font-sans)', textAlign: 'left',
+                  opacity: bulkVisLoading ? 0.5 : 1,
+                }}
+              >
+                <Lock size={20} style={{ color: 'var(--silver-500)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '2px' }}>Make All Private</div>
+                  <div style={{ fontSize: '12px', color: 'var(--silver-500)' }}>Only you can view file content</div>
+                </div>
+              </button>
+            </div>
+            {bulkVisLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--silver-500)', fontSize: '13px' }}>
+                <div className="spinner" style={{ width: '14px', height: '14px' }} />
+                Updating all files…
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

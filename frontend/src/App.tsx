@@ -1,4 +1,5 @@
 
+import { Component, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -16,6 +17,7 @@ import IssueDetailPage from './pages/IssueDetailPage';
 import ExplorePage from './pages/ExplorePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import SolutionsPage from './pages/SolutionsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Layout wrapper with sidebar
 import {
@@ -24,6 +26,39 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+
+// ── Global Error Boundary ─────────────────────────────────────────────
+interface EBState { error: Error | null; }
+class ErrorBoundary extends Component<{ children: ReactNode }, EBState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          minHeight: '100vh', background: '#0a0a0a', color: '#e2e8f0', fontFamily: 'system-ui', gap: '16px', padding: '32px',
+        }}>
+          <div style={{ fontSize: '32px' }}>⚠️</div>
+          <h2 style={{ margin: 0 }}>Something went wrong</h2>
+          <pre style={{ fontSize: '12px', color: '#94a3b8', background: '#1e293b', padding: '16px', borderRadius: '8px', maxWidth: '600px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+            {this.state.error.message}
+          </pre>
+          <button
+            onClick={() => { this.setState({ error: null }); window.location.href = '/dashboard'; }}
+            style={{ padding: '10px 20px', borderRadius: '8px', background: '#334155', border: '1px solid #475569', color: '#e2e8f0', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const navItems = [
   { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -124,35 +159,39 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              {/* Public */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
 
-            {/* Protected — authenticated layout */}
-            <Route element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/repos" element={<ReposPage />} />
-              <Route path="/repos/:id" element={<RepoDetailPage />} />
-              <Route path="/files/:id" element={<FileDetailPage />} />
-              <Route path="/issues" element={<IssuesPage />} />
-              <Route path="/issues/:id" element={<IssueDetailPage />} />
-              <Route path="/solutions" element={<SolutionsPage />} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-            </Route>
+              {/* Protected — authenticated layout */}
+              <Route element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/repos" element={<ReposPage />} />
+                <Route path="/repos/:id" element={<RepoDetailPage />} />
+                <Route path="/files/:id" element={<FileDetailPage />} />
+                <Route path="/issues" element={<IssuesPage />} />
+                <Route path="/issues/:id" element={<IssueDetailPage />} />
+                <Route path="/solutions" element={<SolutionsPage />} />
+                <Route path="/explore" element={<ExplorePage />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/users/:id" element={<ProfilePage />} />
+              </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
+

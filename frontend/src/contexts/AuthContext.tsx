@@ -4,6 +4,10 @@ import { authApi } from '../lib/api';
 interface User {
   id: string;
   username: string;
+  created_at: string;
+  last_login: string;
+  current_streak: number;
+  highest_streak: number;
   avatar_url: string;
   email?: string;
   name?: string;
