@@ -17,7 +17,10 @@ import IssueDetailPage from './pages/IssueDetailPage';
 import ExplorePage from './pages/ExplorePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import SolutionsPage from './pages/SolutionsPage';
+import SolutionDetailPage from './pages/SolutionDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import DevOpsReportPage from './pages/DevOpsReportPage';
+import RepoMapPage from './pages/RepoMapPage';
 
 // Layout wrapper with sidebar
 import {
@@ -177,10 +180,13 @@ export default function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/repos" element={<ReposPage />} />
                 <Route path="/repos/:id" element={<RepoDetailPage />} />
+                <Route path="/repos/:id/devops" element={<DevOpsReportPage />} />
+                <Route path="/repos/:id/map" element={<RepoMapPage />} />
                 <Route path="/files/:id" element={<FileDetailPage />} />
                 <Route path="/issues" element={<IssuesPage />} />
                 <Route path="/issues/:id" element={<IssueDetailPage />} />
                 <Route path="/solutions" element={<SolutionsPage />} />
+                <Route path="/solutions/:id" element={<SolutionDetailPage />} />
                 <Route path="/explore" element={<ExplorePage />} />
                 <Route path="/leaderboard" element={<LeaderboardPage />} />
                 <Route path="/users/:id" element={<ProfilePage />} />
