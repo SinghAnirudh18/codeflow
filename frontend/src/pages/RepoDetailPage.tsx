@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { GitBranch, FileCode, Eye, EyeOff, List, ListX,
-  RefreshCw, Wand2, ArrowLeft, Star, GitFork, Search, Globe, Lock } from 'lucide-react';
+  RefreshCw, Wand2, ArrowLeft, Star, GitFork, Search, Globe, Lock, Server, Map } from 'lucide-react';
 import { reposApi, filesApi, getApiError } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 
@@ -197,6 +197,29 @@ export default function RepoDetailPage() {
             </button>
             <Link to={`/issues?repo_id=${id}`} className="btn btn-secondary btn-sm">
               View Issues
+            </Link>
+            <Link
+              to={`/repos/${id}/map`}
+              className="btn btn-sm"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(0,255,157,0.15))',
+                border: '1px solid rgba(34,211,238,0.3)',
+                color: 'var(--acc)',
+              }}
+            >
+              <Map size={13} /> Repo Map
+            </Link>
+            <Link
+              to={`/repos/${id}/devops`}
+              className="btn btn-sm"
+              id="devops-expert-btn"
+              style={{
+                background: 'linear-gradient(135deg, rgba(96,165,250,0.15), rgba(167,139,250,0.15))',
+                border: '1px solid rgba(96,165,250,0.3)',
+                color: '#93bbfc',
+              }}
+            >
+              <Server size={13} /> DevOps Expert
             </Link>
           </div>
         </div>

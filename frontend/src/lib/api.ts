@@ -101,6 +101,12 @@ export const solutionsApi = {
   syncToGithub: (id: string) => api.post(`/solutions/${id}/sync-github`),
 };
 
+// ── DevOps Expert ────────────────────────────────────────────────
+export const devopsApi = {
+  analyze: (repoId: string) => api.post(`/devops/repos/${repoId}/analyze`),
+  report: (repoId: string) => api.get(`/devops/repos/${repoId}/report`),
+};
+
 // ── Users ────────────────────────────────────────────────────────
 export const usersApi = {
   dashboard: () => api.get('/users/me/dashboard'),
