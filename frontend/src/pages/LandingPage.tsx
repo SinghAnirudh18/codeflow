@@ -1,179 +1,757 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Code2, GitBranch, Bug, Lightbulb, Trophy, Shield, Zap, ArrowRight } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import type { SyntheticEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Hls from 'hls.js';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE } from '../lib/api';
 
-// GitHub SVG icon
-const GithubIcon = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-  </svg>
-);
+gsap.registerPlugin(ScrollTrigger);
 
+const logoUrl =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuC0xONATTGGnIhN-Gi98YRMGsjoNo43DxPW-ktVixrK2cOiGXaVB1Ivxc21hzI25aK0is9DXaUZ2nSka_wKsR_F0lPBcCFP1P_v6xFDTOTHOD_0coUBWtQhoxo_j9QrKI7Dk6RFdRcEJ_vPhgv_S4xQonPKjkL6ogG1dvwedkyCRorCxa1yMQEjAh0kqVZWkFSkkAZYf3Rxty-8nxX6MZz4F8Qyv9KVaDSc70gKY9k9zoYWroRBYAIRpTbuTDgDtoqi0XQkqRkDYqM';
 
-
-const features = [
-  { icon: GitBranch, title: 'Import Repos', desc: 'Import any GitHub repository and manage file visibility with fine-grained control.' },
-  { icon: Bug, title: 'Create Issues', desc: 'Report bugs with priority levels, bounty points, and detailed descriptions.' },
-  { icon: Lightbulb, title: 'Submit Solutions', desc: 'Fix issues, attach code patches, and earn points for accepted solutions.' },
-  { icon: Trophy, title: 'Earn Bounties', desc: 'Climb the leaderboard by solving issues and collecting bounty rewards.' },
-  { icon: Shield, title: 'AI Summaries', desc: 'Get AI-powered summaries for your code files automatically.' },
-  { icon: Zap, title: 'Real-time Status', desc: 'Track import progress, solution reviews, and point history live.' },
-];
+const imageUrls = {
+  map: '/images/mindmap.jpeg',
+  architecture: '/images/devops.png',
+  intelligence: '/images/mindmap.jpeg',
+  bounties: '/images/bounty.png',
+};
 
 export default function LandingPage() {
   const { user, login, loading } = useAuth();
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!loading && user) navigate('/dashboard');
-  }, [user, loading]);
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const src = 'https://stream.mux.com/kimF2ha9zLrX64H00UgLGPflCzNtl1T0215MlAmeOztv8.m3u8';
+    let hls: Hls | null = null;
+
+    if (Hls.isSupported()) {
+      hls = new Hls({ startLevel: -1 });
+      hls.loadSource(src);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+    }
+
+    return () => {
+      hls?.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const sceneIds = ['s1', 's2', 's3', 's4', 's5', 's6'];
+      const sceneEls = sceneIds
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => Boolean(el));
+      const dots = Array.from(document.querySelectorAll<HTMLElement>('.prog-dot'));
+
+      if (sceneEls.length !== sceneIds.length) return;
+
+      const setActiveDot = (idx: number) => {
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === idx));
+      };
+
+      gsap.set(sceneEls, { autoAlpha: 0 });
+      gsap.set(sceneEls[0], { autoAlpha: 1 });
+
+      const introTl = gsap.timeline({ delay: 0.15 });
+      introTl
+        .from('.s1-eyebrow', { y: 18, autoAlpha: 0, duration: 0.7, ease: 'power3.out' })
+        .from('.s1-h1', { y: 30, autoAlpha: 0, duration: 0.9, ease: 'power3.out' }, '-=0.45')
+        .from('.s1-sub', { y: 20, autoAlpha: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
+        .from('.s1-btns', { y: 16, autoAlpha: 0, duration: 0.6, ease: 'power3.out' }, '-=0.45')
+        .from('#scroll-indicator', { autoAlpha: 0, y: 8, duration: 0.5, ease: 'power2.out' }, '-=0.2');
+
+      const makeSceneIn = (el: HTMLElement, idx: number) => {
+        const tl = gsap.timeline();
+        if (idx === 0) return tl;
+
+        const eyebrow = el.querySelector('.eyebrow');
+        const icon = el.querySelector('.feat-icon');
+        const h = el.querySelector('.s-h2, h2');
+        const p = el.querySelector('p');
+        const visual = el.querySelector('.s-visual, .glass-card, img');
+        const statCards = el.querySelectorAll('.stat-card');
+        const btn = el.querySelector('button');
+        const textEls = [eyebrow, icon, h, p, btn].filter(Boolean);
+
+        tl.fromTo(el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'none' }, 0);
+
+        if (textEls.length) {
+          tl.from(
+            textEls,
+            {
+              y: 28,
+              autoAlpha: 0,
+              duration: 0.55,
+              stagger: 0.08,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            },
+            0.1,
+          );
+        }
+
+        if (visual) {
+          tl.from(
+            visual,
+            {
+              x: idx % 2 === 0 ? 40 : -40,
+              autoAlpha: 0,
+              duration: 0.65,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            },
+            0.15,
+          );
+        }
+
+        if (statCards.length) {
+          tl.from(
+            statCards,
+            {
+              y: 30,
+              autoAlpha: 0,
+              duration: 0.5,
+              stagger: 0.1,
+              ease: 'power3.out',
+            },
+            0.2,
+          );
+        }
+
+        return tl;
+      };
+
+      const makeSceneOut = (el: HTMLElement) =>
+        gsap.timeline().to(el, { autoAlpha: 0, y: -20, scale: 1.03, duration: 0.35, ease: 'power2.in' });
+
+      const masterTL = gsap.timeline({ paused: true });
+
+      for (let i = 1; i < sceneIds.length; i += 1) {
+        const label = `t${i}`;
+        masterTL.addLabel(label).add(makeSceneOut(sceneEls[i - 1]), label).add(makeSceneIn(sceneEls[i], i), label);
+      }
+
+      ScrollTrigger.create({
+        trigger: '#scroll-root',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1.2,
+        pin: '#pin-wrap',
+        anticipatePin: 1,
+        onUpdate(self) {
+          const idx = Math.min(sceneIds.length - 1, Math.floor(self.progress * sceneIds.length));
+          setActiveDot(idx);
+          masterTL.progress(self.progress);
+        },
+      });
+
+      dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+          const rootEl = document.getElementById('scroll-root');
+          if (!rootEl) return;
+          const totalH = rootEl.getBoundingClientRect().height;
+          const scrollTop = rootEl.offsetTop + (i / (sceneIds.length - 0.5)) * totalH;
+          window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+        });
+      });
+
+      const targets: Record<string, number> = { stat1: 7, stat2: 2, stat3: 1 };
+      let statsRun = false;
+
+      const animateStats = () => {
+        if (statsRun) return;
+        statsRun = true;
+
+        Object.entries(targets).forEach(([id, end]) => {
+          gsap.fromTo(
+            `#${id}`,
+            { innerText: 0 },
+            {
+              innerText: end,
+              duration: 1.2,
+              ease: 'power2.out',
+              snap: { innerText: 1 },
+              onUpdate() {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(Math.round(Number.parseFloat(el.innerText)));
+              },
+            },
+          );
+        });
+      };
+
+      ScrollTrigger.create({
+        trigger: '#scroll-root',
+        start: '80% top',
+        onEnter: animateStats,
+        onEnterBack: () => {
+          statsRun = false;
+          animateStats();
+        },
+      });
+
+      ScrollTrigger.create({
+        start: '50px top',
+        onEnter() {
+          const nav = document.getElementById('nav-inner');
+          if (nav) nav.style.background = 'rgba(14,14,15,0.7)';
+        },
+        onLeaveBack() {
+          const nav = document.getElementById('nav-inner');
+          if (nav) nav.style.background = '';
+        },
+      });
+
+      ScrollTrigger.create({
+        trigger: '#scroll-root',
+        start: '5% top',
+        onEnter() {
+          gsap.to('#scroll-indicator', { autoAlpha: 0, y: 8, duration: 0.4 });
+        },
+        onLeaveBack() {
+          gsap.to('#scroll-indicator', { autoAlpha: 1, y: 0, duration: 0.4 });
+        },
+      });
+
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
+    });
+
+    return () => {
+      ctx.revert();
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
+
+  const handleImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.style.background = '#1c1b1c';
+    event.currentTarget.style.minHeight = '200px';
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column' }}>
-      {/* Noise texture overlay */}
-      <div style={{
-        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
-        background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(160,160,160,0.06) 0%, transparent 70%)',
-      }} />
+    <div className="ani-page">
+      <style>{`
+        .ani-page *, .ani-page *::before, .ani-page *::after { box-sizing: border-box; }
+        .ani-page {
+          min-height: 100vh;
+          background: #0e0e0f;
+          color: #e5e2e3;
+          font-family: 'Geist', sans-serif;
+          overflow-x: hidden;
+        }
+        .ani-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          overflow: hidden;
+        }
+        .ani-bg video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0.35;
+        }
+        .ani-bg-shade {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(14,14,15,0.3) 0%, rgba(14,14,15,0.55) 50%, #0e0e0f 100%);
+        }
+        #scroll-root {
+          height: 700vh;
+          position: relative;
+          z-index: 10;
+        }
+        #pin-wrap {
+          position: sticky;
+          top: 0;
+          height: 100vh;
+          width: 100%;
+          overflow: hidden;
+        }
+        .scene {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6rem 1.5rem 2rem;
+          pointer-events: none;
+        }
+        .scene.s-center { flex-direction: column; text-align: center; }
+        .scene button, .scene a, #navbar a, #navbar button, footer a { pointer-events: auto; }
+        .glass {
+          background: rgba(255,255,255,0.04);
+          backdrop-filter: blur(20px) saturate(140%);
+          -webkit-backdrop-filter: blur(20px) saturate(140%);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-top-color: rgba(255,255,255,0.18);
+        }
+        .glass-card {
+          border-radius: 1.5rem;
+          padding: 0.5rem;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 32px 64px rgba(0,0,0,0.5);
+        }
+        #navbar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
+          display: flex;
+          justify-content: center;
+          padding: 1.5rem 1rem;
+          pointer-events: none;
+        }
+        .nav-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          max-width: 56rem;
+          padding: 0.625rem 1.25rem;
+          border-radius: 9999px;
+          pointer-events: auto;
+        }
+        .grad-text {
+          background: linear-gradient(160deg, #ffffff 0%, rgba(255,255,255,0.55) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .glow {
+          text-shadow: 0 0 20px rgba(0,218,243,0.6), 0 0 40px rgba(0,218,243,0.25);
+        }
+        .split {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 4rem;
+          align-items: center;
+          max-width: 72rem;
+          width: 100%;
+        }
+        .split.rev { direction: rtl; }
+        .split.rev > * { direction: ltr; }
+        .eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.75rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #00daf3;
+          margin-bottom: 1.25rem;
+        }
+        .eyebrow::before {
+          content: '';
+          display: block;
+          width: 1.5rem;
+          height: 1px;
+          background: #00daf3;
+          box-shadow: 0 0 6px rgba(0,218,243,0.8);
+        }
+        .stat-card {
+          border-radius: 1.5rem;
+          padding: 2.5rem 2rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+          position: relative;
+          overflow: hidden;
+        }
+        .stat-card::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 10%;
+          right: 10%;
+          height: 1px;
+          background: linear-gradient(to right, transparent, rgba(0,218,243,0.6), transparent);
+        }
+        #scroll-indicator {
+          position: absolute;
+          bottom: 2.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.375rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.65rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(186,201,204,0.5);
+        }
+        .scroll-mouse {
+          width: 1.25rem;
+          height: 2rem;
+          border: 1.5px solid rgba(186,201,204,0.3);
+          border-radius: 999px;
+          position: relative;
+        }
+        .scroll-dot {
+          position: absolute;
+          top: 0.3rem;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0.2rem;
+          height: 0.45rem;
+          background: #00daf3;
+          border-radius: 999px;
+          animation: scrollDot 1.8s ease-in-out infinite;
+        }
+        @keyframes scrollDot {
+          0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+          80% { opacity: 0; transform: translateX(-50%) translateY(0.85rem); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(0); }
+        }
+        #progress-dots {
+          position: fixed;
+          right: 2rem;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 90;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .prog-dot {
+          width: 0.4rem;
+          height: 0.4rem;
+          border-radius: 999px;
+          background: rgba(186,201,204,0.25);
+          transition: background 0.3s, transform 0.3s;
+          cursor: pointer;
+        }
+        .prog-dot.active {
+          background: #00daf3;
+          transform: scale(1.5);
+          box-shadow: 0 0 6px rgba(0,218,243,0.7);
+        }
+        .feat-icon {
+          font-size: 2.5rem;
+          color: #00daf3;
+          filter: drop-shadow(0 0 10px rgba(0,218,243,0.5));
+          margin-bottom: 1rem;
+          display: block;
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .scene-img {
+          width: 100%;
+          height: auto;
+          border-radius: 1.25rem;
+          display: block;
+          object-fit: cover;
+          aspect-ratio: 16 / 9;
+        }
+        .material-symbols-outlined {
+          font-family: 'Material Symbols Outlined';
+          font-weight: normal;
+          font-style: normal;
+          display: inline-block;
+          line-height: 1;
+          text-transform: none;
+          letter-spacing: normal;
+          white-space: nowrap;
+          direction: ltr;
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .nav-link {
+          font-size: 0.7rem;
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #8a9699;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .nav-link:hover { color: #00daf3; }
+        .ani-btn {
+          border-radius: 9999px;
+          cursor: pointer;
+          transition: background 0.25s, box-shadow 0.25s, color 0.2s, border-color 0.2s;
+        }
+        .ani-btn-primary {
+          padding: 0.875rem 2.25rem;
+          font-size: 1rem;
+          font-weight: 500;
+          color: #fff;
+          border: 1px solid rgba(255,255,255,0.12);
+        }
+        .ani-btn-primary:hover {
+          background: rgba(255,255,255,0.08);
+          box-shadow: 0 0 24px rgba(0,218,243,0.15);
+        }
+        .ani-btn-ghost {
+          padding: 0.875rem 2.25rem;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #8a9699;
+          background: transparent;
+          border: 1px solid rgba(59,73,76,0.6);
+        }
+        .ani-btn-ghost:hover {
+          color: #fff;
+          border-color: rgba(255,255,255,0.25);
+        }
+        .ani-footer-link {
+          font-size: 0.875rem;
+          color: #8a9699;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .ani-footer-link:hover { color: #e5e2e3; }
+        @media (max-width: 768px) {
+          .split { grid-template-columns: 1fr; gap: 2rem; }
+          .split.rev { direction: ltr; }
+          .s6-stats { grid-template-columns: 1fr !important; }
+          footer .footer-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          #progress-dots { display: none; }
+          .nav-links { display: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ani-page * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+      `}</style>
 
-      {/* Header */}
-      <header style={{
-        position: 'relative', zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '20px 48px',
-        borderBottom: '1px solid var(--border)',
-        background: 'rgba(8,8,8,0.8)',
-        backdropFilter: 'blur(12px)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '36px', height: '36px',
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border-bright)',
-            borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Code2 size={20} style={{ color: 'var(--silver-200)' }} />
+      <div className="ani-bg">
+        <video ref={videoRef} autoPlay muted loop playsInline />
+        <div className="ani-bg-shade" />
+        <div className="orb" style={{ width: '40vw', height: '40vw', top: '-5%', left: '-10%', background: 'rgba(0,218,243,0.04)' }} />
+        <div className="orb" style={{ width: '35vw', height: '35vw', bottom: '10%', right: '-8%', background: 'rgba(0,180,200,0.05)' }} />
+      </div>
+
+      <nav id="navbar">
+        <div className="nav-inner glass" id="nav-inner">
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <img src={logoUrl} alt="CodeFlow" style={{ height: '2.25rem', width: 'auto', objectFit: 'contain' }} />
+          </Link>
+
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <Link className="nav-link" to="/">Product</Link>
+            <Link className="nav-link" to="/features">Features</Link>
+            <a className="nav-link" href={`${API_BASE}/docs`} target="_blank" rel="noreferrer">Docs</a>
+            <Link className="nav-link" to="/bounties">Bounties</Link>
           </div>
-          <span style={{ fontWeight: 800, fontSize: '18px', color: 'var(--silver-50)', letterSpacing: '-0.02em' }}>
-            CodeFlow
-          </span>
-        </div>
-        <button onClick={login} className="btn btn-secondary btn-sm">
-          <GithubIcon size={14} /> Sign in with GitHub
-        </button>
-      </header>
 
-      {/* Hero */}
-      <main style={{ flex: 1, position: 'relative', zIndex: 10 }}>
-        <section style={{ textAlign: 'center', padding: '100px 24px 80px' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '6px 14px', borderRadius: '999px',
-            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-            fontSize: '12px', color: 'var(--silver-400)', marginBottom: '32px',
-            fontWeight: 500, letterSpacing: '0.04em'
-          }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }} />
-            Collaborative Code Review &amp; Bug Bounty Platform
-          </div>
-
-          <h1 style={{ fontSize: 'clamp(40px, 6vw, 80px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: '24px' }}>
-            Fix Bugs.{' '}
-            <span className="gradient-text">Earn Bounties.</span>
-            <br />Build Together.
-          </h1>
-
-          <p style={{ fontSize: '18px', color: 'var(--silver-500)', maxWidth: '600px', margin: '0 auto 48px', lineHeight: 1.7 }}>
-            Import GitHub repos, list files for community review, create issues with bounty points, and reward developers who fix your code.
-          </p>
-
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={login} className="btn btn-primary btn-lg" style={{ gap: '10px' }}>
-              <GithubIcon size={18} /> Continue with GitHub <ArrowRight size={16} />
-            </button>
-            <a href="http://localhost:8000/docs" target="_blank" rel="noreferrer" className="btn btn-secondary btn-lg">
-              View API Docs
-            </a>
-          </div>
-        </section>
-
-        {/* Stats bar */}
-        <div style={{
-          display: 'flex', justifyContent: 'center', gap: '0',
-          borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-surface)', padding: '0 48px', flexWrap: 'wrap'
-        }}>
-          {[
-            { label: 'Developers', value: '500+' },
-            { label: 'Issues Resolved', value: '2.4K+' },
-            { label: 'Repos Indexed', value: '1.2K+' },
-            { label: 'Bounties Paid', value: '$12K+' },
-          ].map((s, i) => (
-            <div key={i} style={{
-              padding: '28px 48px', textAlign: 'center',
-              borderRight: i < 3 ? '1px solid var(--border)' : 'none',
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--silver-50)', letterSpacing: '-0.03em' }}>{s.value}</div>
-              <div style={{ fontSize: '13px', color: 'var(--silver-600)', marginTop: '4px', fontWeight: 500 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Features */}
-        <section style={{ padding: '80px 48px', maxWidth: '1100px', margin: '0 auto' }}>
-          <h2 style={{ textAlign: 'center', fontSize: '32px', marginBottom: '12px' }}>
-            Everything you need
-          </h2>
-          <p style={{ textAlign: 'center', color: 'var(--silver-500)', marginBottom: '56px', fontSize: '16px' }}>
-            A complete workflow for collaborative code review and bug fixing
-          </p>
-          <div className="grid-3" style={{ gap: '16px' }}>
-            {features.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="card" style={{ padding: '28px' }}>
-                <div style={{
-                  width: '40px', height: '40px',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '10px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  marginBottom: '16px',
-                }}>
-                  <Icon size={18} style={{ color: 'var(--silver-400)' }} />
-                </div>
-                <h3 style={{ fontSize: '16px', marginBottom: '8px', color: 'var(--silver-100)' }}>{title}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--silver-500)', lineHeight: 1.6 }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section style={{
-          textAlign: 'center', padding: '80px 24px',
-          background: 'linear-gradient(to bottom, transparent, var(--bg-surface))',
-        }}>
-          <h2 style={{ fontSize: '36px', marginBottom: '16px' }}>Ready to start?</h2>
-          <p style={{ color: 'var(--silver-500)', marginBottom: '40px', fontSize: '16px' }}>
-            Connect your GitHub account and start in minutes
-          </p>
-          <button onClick={login} className="btn btn-primary btn-lg">
-            <GithubIcon size={18} /> Get Started Free
+          <button
+            className="glass ani-btn"
+            onClick={login}
+            style={{
+              borderRadius: '9999px',
+              padding: '0.5rem 1.25rem',
+              fontSize: '0.7rem',
+              fontFamily: 'JetBrains Mono, monospace',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#00daf3',
+              border: '1px solid rgba(0,218,243,0.3)',
+            }}
+          >
+            Sign in with GitHub
           </button>
-        </section>
-      </main>
+        </div>
+      </nav>
 
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border)',
-        padding: '24px 48px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        color: 'var(--silver-600)', fontSize: '13px',
-        position: 'relative', zIndex: 10,
-      }}>
-        <span>© 2026 CodeFlow. Built for developers.</span>
-        <span>FastAPI + MongoDB + Redis</span>
+      <div id="progress-dots">
+        {[0, 1, 2, 3, 4, 5].map((idx) => (
+          <div key={idx} className={`prog-dot ${idx === 0 ? 'active' : ''}`} data-scene={idx} />
+        ))}
+      </div>
+
+      <div id="scroll-root">
+        <div id="pin-wrap">
+          <section className="scene s-center" id="s1">
+            <div style={{ maxWidth: '56rem', width: '100%' }}>
+              <div className="eyebrow s1-eyebrow">From the Community, For the Community</div>
+              <h1
+                className="grad-text s1-h1"
+                style={{
+                  fontSize: 'clamp(3rem,8vw,7rem)',
+                  lineHeight: 1,
+                  fontWeight: 800,
+                  letterSpacing: '-0.04em',
+                  marginBottom: '1.5rem',
+                }}
+              >
+                Fix Bugs.
+                <br />
+                Build Together.
+              </h1>
+              <p className="s1-sub" style={{ fontSize: '1.125rem', lineHeight: 1.7, color: '#8a9699', maxWidth: '38rem', margin: '0 auto 2.5rem' }}>
+                A collaborative intelligence platform where developers unite to solve complex issues, build better software, and earn rewards.
+              </p>
+              <div className="s1-btns" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <button className="glass ani-btn ani-btn-primary" onClick={login}>Get Started</button>
+                <Link className="ani-btn ani-btn-ghost" to="/features">Explore Features</Link>
+              </div>
+            </div>
+
+            <div id="scroll-indicator">
+              <div className="scroll-mouse"><div className="scroll-dot" /></div>
+              <span>scroll</span>
+            </div>
+          </section>
+
+          <section className="scene" id="s2">
+            <div className="split">
+              <div className="s-text">
+                <div className="eyebrow">Spatial Navigation</div>
+                <span className="material-symbols-outlined feat-icon">view_in_ar</span>
+                <h2 className="grad-text s-h2" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
+                  Visualize your
+                  <br />
+                  codebase in 3D.
+                </h2>
+                <p style={{ fontSize: '1.05rem', lineHeight: 1.7, color: '#8a9699', maxWidth: '28rem' }}>
+                  Navigate complex repositories with intuitive spatial mapping. Understand dependencies and architecture at a glance.
+                </p>
+              </div>
+              <div className="s-visual">
+                <div className="glass glass-card">
+                  <img className="scene-img" alt="3D Codebase Mapping" src={imageUrls.map} onError={handleImageError} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="scene" id="s3">
+            <div className="split rev">
+              <div className="s-text">
+                <div className="eyebrow">Living Docs</div>
+                <span className="material-symbols-outlined feat-icon">architecture</span>
+                <h2 className="grad-text s-h2" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
+                  Automated
+                  <br />
+                  Architecture Blueprints.
+                </h2>
+                <p style={{ fontSize: '1.05rem', lineHeight: 1.7, color: '#8a9699', maxWidth: '28rem' }}>
+                  Generate living documentation and infrastructure diagrams directly from your source code. Always up to date.
+                </p>
+              </div>
+              <div className="s-visual">
+                <div className="glass glass-card">
+                  <img className="scene-img" alt="Architecture Blueprints" src={imageUrls.architecture} onError={handleImageError} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="scene" id="s4">
+            <div className="split">
+              <div className="s-text">
+                <div className="eyebrow">AI-Powered</div>
+                <span className="material-symbols-outlined feat-icon">psychology</span>
+                <h2 className="grad-text s-h2" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
+                  RAG-Powered
+                  <br />
+                  Code Intelligence.
+                </h2>
+                <p style={{ fontSize: '1.05rem', lineHeight: 1.7, color: '#8a9699', maxWidth: '28rem' }}>
+                  Ask questions about your repository and conduct technical interviews with AI that understands your entire codebase context.
+                </p>
+              </div>
+              <div className="s-visual">
+                <div className="glass glass-card">
+                  <img className="scene-img" alt="Code Intelligence Q&A" src={imageUrls.intelligence} onError={handleImageError} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="scene s-center" id="s5">
+            <div style={{ maxWidth: '52rem', width: '100%' }}>
+              <div className="eyebrow" style={{ justifyContent: 'center' }}>Earn While You Code</div>
+              <span className="material-symbols-outlined feat-icon" style={{ fontSize: '3rem' }}>monetization_on</span>
+              <h2 className="grad-text" style={{ fontSize: 'clamp(2rem,5vw,3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
+                Earn Bounties.
+                <br />
+                Solve Issues.
+              </h2>
+              <p style={{ fontSize: '1.05rem', lineHeight: 1.7, color: '#8a9699', maxWidth: '34rem', margin: '0 auto 2.5rem' }}>
+                Contribute to open source and private repositories. Get paid directly for closing critical issues and improving code quality.
+              </p>
+              <div className="glass glass-card" style={{ maxWidth: '48rem', margin: '0 auto' }}>
+                <img className="scene-img" alt="Bounties Dashboard" src={imageUrls.bounties} onError={handleImageError} />
+              </div>
+            </div>
+          </section>
+
+          <section className="scene s-center" id="s6">
+            <div style={{ maxWidth: '52rem', width: '100%' }}>
+              <div className="eyebrow" style={{ justifyContent: 'center' }}>Early Access</div>
+              <h2 className="grad-text" style={{ fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: '3rem' }}>
+                Join the Movement
+              </h2>
+              <div className="s6-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem', marginBottom: '2.5rem' }}>
+                <div className="glass stat-card">
+                  <span className="glow" style={{ fontSize: '3.5rem', fontWeight: 800, color: '#00daf3', lineHeight: 1 }} id="stat1">0</span>
+                  <span style={{ fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a9699' }}>Total Points</span>
+                </div>
+                <div className="glass stat-card">
+                  <span className="glow" style={{ fontSize: '3.5rem', fontWeight: 800, color: '#00daf3', lineHeight: 1 }} id="stat2">0</span>
+                  <span style={{ fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a9699' }}>Repositories</span>
+                </div>
+                <div className="glass stat-card">
+                  <span className="glow" style={{ fontSize: '3.5rem', fontWeight: 800, color: '#00daf3', lineHeight: 1 }} id="stat3">0</span>
+                  <span style={{ fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a9699' }}>Solutions Accepted</span>
+                </div>
+              </div>
+              <button className="glass ani-btn" onClick={login} style={{ borderRadius: '9999px', padding: '1rem 2.75rem', fontSize: '1.05rem', fontWeight: 500, color: '#fff', border: '1px solid rgba(255,255,255,0.12)' }}>
+                Start Contributing Now
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer style={{ position: 'relative', zIndex: 10, background: '#0a0a0b', borderTop: '1px solid rgba(59,73,76,0.4)', padding: '4rem 2.5rem' }}>
+        <div className="footer-grid" style={{ maxWidth: '72rem', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '2rem' }}>
+          <div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e5e2e3', marginBottom: '0.5rem' }}>CodeFlow</div>
+            <p style={{ fontSize: '0.875rem', color: '#8a9699', lineHeight: 1.6 }}>
+              © 2024 CodeFlow.
+              <br />
+              Fix bugs. Build together. Earn rewards.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+            <a className="ani-footer-link" href="#">Privacy Policy</a>
+            <a className="ani-footer-link" href="#">Terms of Service</a>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+            <a className="ani-footer-link" href="#">Security</a>
+            <a className="ani-footer-link" href={`${API_BASE}/health`} target="_blank" rel="noreferrer">Status</a>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+            <a className="ani-footer-link" href="#">Contact</a>
+            <a className="ani-footer-link" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+        </div>
       </footer>
     </div>
   );

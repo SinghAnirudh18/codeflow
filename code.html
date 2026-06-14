@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="dark h-full scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CodeFlow - Early Access</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- GSAP & ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- HLS.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-container": "#9100c4",
+                        "tertiary": "#fce6ff",
+                        "surface-container-lowest": "#0e0e0f",
+                        "surface": "#131314",
+                        "surface-dim": "#131314",
+                        "primary-fixed-dim": "#00daf3",
+                        "on-secondary-container": "#007243",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#f0c0ff",
+                        "on-secondary": "#00391f",
+                        "inverse-primary": "#006875",
+                        "surface-tint": "#00daf3",
+                        "primary": "#c3f5ff",
+                        "on-primary-container": "#00626e",
+                        "surface-container": "#201f20",
+                        "tertiary-fixed": "#f8d8ff",
+                        "on-secondary-fixed-variant": "#00522f",
+                        "on-primary-fixed": "#001f24",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#1c1b1c",
+                        "outline": "#849396",
+                        "on-error": "#690005",
+                        "surface-container-high": "#2a2a2b",
+                        "tertiary-fixed-dim": "#ecb2ff",
+                        "on-tertiary-fixed-variant": "#74009f",
+                        "on-surface-variant": "#bac9cc",
+                        "background": "#131314",
+                        "primary-container": "#00e5ff",
+                        "on-primary-fixed-variant": "#004f58",
+                        "secondary-fixed-dim": "#00e38b",
+                        "on-background": "#e5e2e3",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#56ffa8",
+                        "inverse-on-surface": "#313031",
+                        "primary-fixed": "#9cf0ff",
+                        "secondary": "#f5fff4",
+                        "on-surface": "#e5e2e3",
+                        "on-tertiary-fixed": "#320047",
+                        "surface-container-highest": "#353436",
+                        "outline-variant": "#3b494c",
+                        "secondary-container": "#16ff9e",
+                        "on-tertiary": "#520071",
+                        "on-secondary-fixed": "#002110",
+                        "inverse-surface": "#e5e2e3",
+                        "surface-variant": "#353436",
+                        "surface-bright": "#3a393a",
+                        "on-primary": "#00363d"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "gutter": "24px",
+                        "bento-gap": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px"
+                    },
+                    fontFamily: {
+                        "label-code": ["JetBrains Mono"],
+                        "label-caps": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "headline-lg-mobile": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    fontSize: {
+                        "label-code": ["13px", { "lineHeight": "1.4", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.08em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-md": ["15px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<script>
+        // Add js-enabled class to handle CSS fallback
+        document.documentElement.classList.add('js-enabled');
+    </script>
+<style>
+        body {
+            background-color: #0e0e0f;
+            color: #e5e2e3;
+            ::selection {
+                background-color: #00e5ff;
+                color: #000;
+            }
+        }
+
+        .liquid-glass {
+            backdrop-filter: blur(4px);
+            background: rgba(255, 255, 255, 0.01);
+            position: relative;
+        }
+
+        .liquid-glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.01));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+        }
+
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        
+        .gsap-anim {
+            will-change: transform, opacity;
+        }
+
+        /* Base styles for scenes (no-js fallback) */
+        .scene-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 4rem 0;
+            width: 100%;
+        }
+
+        /* JS-enabled scrollytelling styles */
+        .js-enabled #scrolly-container {
+            height: 600vh;
+        }
+
+        .js-enabled #pinned-content {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .js-enabled .scene-content {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+        
+        .js-enabled .scene-content.active {
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        /* Ensure first scene is visible on load */
+        .js-enabled #scene-1 {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+    </style>
+</head>
+<body class="w-full relative font-body-md text-on-surface overflow-x-hidden">
+<!-- Fixed Background Video -->
+<div class="fixed inset-0 z-0 h-screen w-screen pointer-events-none">
+<video autoplay="" class="w-full h-full object-cover opacity-50" id="bg-video" loop="" muted="" playsinline=""></video>
+<div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background"></div>
+</div>
+<!-- Sticky Navbar -->
+<nav class="fixed top-0 w-full flex justify-center pt-8 z-50 transition-all duration-300 pointer-events-none">
+<div class="glass-pill liquid-glass rounded-full px-6 py-3 flex items-center justify-between w-full max-w-4xl border border-white/10 shadow-2xl pointer-events-auto mx-4">
+<div class="flex items-center gap-2">
+<img alt="CodSki Logo" class="h-8 md:h-10 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0xONATTGGnIhN-Gi98YRMGsjoNo43DxPW-ktVixrK2cOiGXaVB1Ivxc21hzI25aK0is9DXaUZ2nSka_wKsR_F0lPBcCFP1P_v6xFDTOTHOD_0coUBWtQhoxo_j9QrKI7Dk6RFdRcEJ_vPhgv_S4xQonPKjkL6ogG1dvwedkyCRorCxa1yMQEjAh0kqVZWkFSkkAZYf3Rxty-8nxX6MZz4F8Qyv9KVaDSc70gKY9k9zoYWroRBYAIRpTbuTDgDtoqi0XQkqRkDYqM"/>
+</div>
+<div class="hidden md:flex items-center gap-8 font-label-caps text-label-caps text-on-surface-variant">
+<a class="hover:text-primary-container transition-colors duration-200 uppercase" href="#">Product</a>
+<a class="hover:text-primary-container transition-colors duration-200 uppercase" href="#">Features</a>
+<a class="hover:text-primary-container transition-colors duration-200 uppercase" href="#">Docs</a>
+<a class="hover:text-primary-container transition-colors duration-200 uppercase" href="#">Bounties</a>
+</div>
+<div>
+<button class="liquid-glass rounded-full px-5 py-2 font-label-caps text-label-caps uppercase text-primary-container hover:bg-primary-container/10 transition-colors duration-300">Sign in with GitHub</button>
+</div>
+</div>
+</nav>
+<!-- Scrollytelling Container -->
+<div class="relative z-10" id="scrolly-container">
+<div class="w-full" id="pinned-content">
+<!-- Scene 1: Hero -->
+<section class="scene-content flex-col text-center px-4 active" id="scene-1">
+<div class="gsap-anim text-content max-w-4xl mx-auto">
+<div class="mb-6 tracking-[0.2em] font-label-caps text-label-caps uppercase text-primary-container">
+                    From the Community, For the Community
+                </div>
+<h1 class="font-display-lg text-display-lg md:text-[6rem] leading-none mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 drop-shadow-sm">
+                    Fix Bugs.<br/>Build Together.
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-12 max-w-2xl mx-auto">
+                    A collaborative intelligence platform where developers unite to solve complex issues, build better software, and earn rewards.
+                </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="glass-pill liquid-glass rounded-full px-8 py-4 font-body-lg text-white hover:bg-white/10 transition-all duration-300">
+                        Get Started
+                    </button>
+<button class="rounded-full px-8 py-4 font-body-lg text-on-surface-variant border border-outline-variant hover:text-white transition-all duration-300">
+                        Explore Features
+                    </button>
+</div>
+</div>
+</section>
+<!-- Scene 2: 3D Codebase -->
+<section class="scene-content px-4 md:px-20" id="scene-2">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 w-full">
+<div class="flex-1 text-left gsap-anim text-content">
+<span class="material-symbols-outlined text-6xl text-primary-container mb-6" style="font-variation-settings: 'FILL' 1">view_in_ar</span>
+<h2 class="font-headline-lg text-headline-lg md:text-[3rem] leading-tight mb-6 text-white">
+                        Visualize your codebase in 3D.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Navigate complex repositories with intuitive spatial mapping. Understand dependencies and architecture at a glance.
+                    </p>
+</div>
+<div class="flex-1 w-full gsap-anim visual-content">
+<div class="glass-pill liquid-glass rounded-[2rem] p-2 border border-white/10 shadow-2xl">
+<img alt="3D Mapping" class="w-full h-auto rounded-[1.5rem] object-cover aspect-video" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZZf3YO6p4uVVyI8NELnzBK9E54wrnFj-oMlQj6b0snfR7QO0KxXnC9wGu0RqQ3GwAlVsP7kHxYk6Jbdrtm83F1V59KvMPNRqXuL3X-kXiCtsxteG-WLAY4PzSvNVJyxgb_rUcbEdvanX1cAlTdoVyNYIwaDszixosydmgNmXoL4_Vp9TezcTk-wXkIjD07s25ypCR9Nx_8rmulgrSPzGcoDFjUqf9jqX4wS7eq8UU61uWz1lkk9TMGLbBb75Gzj-QI33kz5FX6I0"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Scene 3: Architecture -->
+<section class="scene-content px-4 md:px-20" id="scene-3">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row-reverse items-center gap-12 w-full">
+<div class="flex-1 text-left gsap-anim text-content">
+<span class="material-symbols-outlined text-6xl text-primary-container mb-6" style="font-variation-settings: 'FILL' 1">architecture</span>
+<h2 class="font-headline-lg text-headline-lg md:text-[3rem] leading-tight mb-6 text-white">
+                        Automated Architecture Blueprints.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Generate living documentation and infrastructure diagrams directly from your source code. Always up to date.
+                    </p>
+</div>
+<div class="flex-1 w-full gsap-anim visual-content">
+<div class="glass-pill liquid-glass rounded-[2rem] p-2 border border-white/10 shadow-2xl">
+<img alt="Architecture Blueprints" class="w-full h-auto rounded-[1.5rem] object-cover aspect-video" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6nLE73aPQiDB13z4Rp8nTVE1c2hA7zf8aIHWl8gayqa_ih6QjM6VMLjVhV2-FqZtAL_YV-rGXM0rZLwhgsvR7J8S0OKbLRr86R-ruB8W1zxOVAHS43Q8IDsB7zp30pMweuAvrZFQsauNIg30-1umQ20H394IKzqPUOjcjjJ-RwPsW5W5iGc8NpXXk0erBo4cmrMin7mzcuz9c1PWt7YsooHcVHT39FyzGGSpM2vfxnF-L3yIdaunxXxBVvPsHVE_UTKipSBF2ENM"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Scene 4: Intelligence -->
+<section class="scene-content px-4 md:px-20" id="scene-4">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 w-full">
+<div class="flex-1 text-left gsap-anim text-content">
+<span class="material-symbols-outlined text-6xl text-primary-container mb-6" style="font-variation-settings: 'FILL' 1">psychology</span>
+<h2 class="font-headline-lg text-headline-lg md:text-[3rem] leading-tight mb-6 text-white">
+                        RAG-Powered Code Intelligence.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        Ask questions about your repository and conduct technical interviews with AI that understands your entire codebase context.
+                    </p>
+</div>
+<div class="flex-1 w-full gsap-anim visual-content">
+<div class="glass-pill liquid-glass rounded-[2rem] p-2 border border-white/10 shadow-2xl">
+<img alt="Intelligence Q&amp;A" class="w-full h-auto rounded-[1.5rem] object-cover aspect-video" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfkR_ZmPiQvZUTIV2p_qjPShCMRZE8TiA4YZyzt1yFev2dIbhM7hlYhUHoVvD9a5vh93Y9zJ9WIZ1YFLYDL_G3zVr1JBzANm25AQHXpIOO-TLiOcfHwxGJigMqrEXqy3SQjKmaQzE6oBOcmtXaEGVnqby_49WwKp5AV8eTzUJthHPqhZJAIw0YiDWUuvUgp62ZJarF5mPomowL8ysYbhrOSb2XzxnkGsdofpbFFTUSX2qtplc96kiUABoskBc9Eu2yYE-_Sm7zf4U"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Scene 5: Bounties -->
+<section class="scene-content flex-col text-center px-4" id="scene-5">
+<div class="max-w-4xl mx-auto flex flex-col items-center w-full">
+<div class="gsap-anim text-content">
+<span class="material-symbols-outlined text-6xl text-primary-container mb-6" style="font-variation-settings: 'FILL' 1">monetization_on</span>
+<h2 class="font-headline-lg text-headline-lg md:text-[3rem] leading-tight mb-6 text-white">
+                        Earn Bounties. Solve Issues.
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-12">
+                        Contribute to open source and private repositories. Get paid directly for closing critical issues and improving code quality.
+                    </p>
+</div>
+<div class="w-full max-w-5xl gsap-anim visual-content">
+<div class="glass-pill liquid-glass rounded-[2rem] p-2 border border-white/10 shadow-2xl">
+<img alt="Bounties" class="w-full h-auto rounded-[1.5rem] object-cover aspect-video" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1gi6lUixdxLTZM9TuqIqrIBRqyKyS_xGF0i_AauAdPrErXfBSKeM5JErLOM1ENevaihD__UG2RyU28LG9lYBO1tKlZia1NxdAXpZsbU5gasGPflauPARqrk0gOCVBXfCmVNMPLWU4UAfdafTiE60tacr0wRHEonu6QM_xuJbyKeMUnjfY1KB60b8bWqcRpOAUwknApLprTPPm9XO-lxknVbFr2warbVpR85Dp2gmLbKaHn4El1yt6KY0KPgsvXfPHtA5YdiE2T4M"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Scene 6: Stats -->
+<section class="scene-content flex-col text-center px-4" id="scene-6">
+<div class="max-w-4xl mx-auto flex flex-col items-center w-full gsap-anim text-content">
+<h2 class="font-display-lg text-display-lg md:text-[4rem] leading-tight mb-12 text-white">
+                    Join the Movement
+                </h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mb-12">
+<div class="glass-pill liquid-glass rounded-[2rem] p-8 border border-white/10 shadow-2xl flex flex-col items-center justify-center">
+<span class="text-primary-container text-5xl font-bold mb-2">7</span>
+<span class="text-on-surface-variant font-label-caps uppercase tracking-wider">Total Points</span>
+</div>
+<div class="glass-pill liquid-glass rounded-[2rem] p-8 border border-white/10 shadow-2xl flex flex-col items-center justify-center">
+<span class="text-primary-container text-5xl font-bold mb-2">2</span>
+<span class="text-on-surface-variant font-label-caps uppercase tracking-wider">Repositories</span>
+</div>
+<div class="glass-pill liquid-glass rounded-[2rem] p-8 border border-white/10 shadow-2xl flex flex-col items-center justify-center">
+<span class="text-primary-container text-5xl font-bold mb-2">1</span>
+<span class="text-on-surface-variant font-label-caps uppercase tracking-wider">Solution Accepted</span>
+</div>
+</div>
+<button class="glass-pill liquid-glass rounded-full px-10 py-4 font-body-lg text-white hover:bg-white/10 transition-all duration-300">
+                    Start Contributing Now
+                </button>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer (appears after scrolling past scenes) -->
+<footer class="relative z-10 w-full bg-surface-container-lowest py-12 border-t border-outline-variant/20">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-bento-gap px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto">
+<div class="col-span-1 md:col-span-2 lg:col-span-4 mb-8">
+<div class="text-headline-md font-headline-md font-bold text-on-surface mb-4">CodeFlow</div>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 CodeFlow. Secure your code. Reward your hunters.</p>
+</div>
+<div class="flex flex-col gap-4 font-body-md text-body-md">
+<a class="text-on-surface-variant hover:text-on-surface hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:underline transition-all" href="#">Terms of Service</a>
+</div>
+<div class="flex flex-col gap-4 font-body-md text-body-md">
+<a class="text-on-surface-variant hover:text-on-surface hover:underline transition-all" href="#">Security</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:underline transition-all" href="#">Status</a>
+</div>
+<div class="flex flex-col gap-4 font-body-md text-body-md">
+<a class="text-on-surface-variant hover:text-on-surface hover:underline transition-all" href="#">Contact</a>
+</div>
+</div>
+</footer>
+<script>
+    // HLS.js setup for fixed background
+    const video = document.getElementById('bg-video');
+    const videoSrc = 'https://stream.mux.com/kimF2ha9zLrX64H00UgLGPflCzNtl1T0215MlAmeOztv8.m3u8';
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(videoSrc);
+        hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = videoSrc;
+    }
+
+    // Only run GSAP if js-enabled class is present
+    if (document.documentElement.classList.contains('js-enabled')) {
+        gsap.registerPlugin(ScrollTrigger);
+
+        const scenes = gsap.utils.toArray('.scene-content');
+        
+        // Ensure initial states are set for JS
+        gsap.set(scenes, { autoAlpha: 0, y: 50, scale: 0.95 });
+        gsap.set(scenes[0], { autoAlpha: 1, y: 0, scale: 1 });
+
+        // Master Timeline
+        const masterTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "#scrolly-container",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: true,
+                pin: "#pinned-content",
+            }
+        });
+
+        scenes.forEach((scene, i) => {
+            if (i > 0) {
+                const prevScene = scenes[i - 1];
+                
+                // Add overlapping transitions
+                masterTl
+                    .addLabel(`scene-${i}-start`)
+                    // Fade out previous
+                    .to(prevScene, {
+                        autoAlpha: 0,
+                        y: -50,
+                        scale: 1.05,
+                        duration: 1,
+                        ease: "power2.inOut",
+                        onStart: () => prevScene.classList.remove('active'),
+                        onReverseComplete: () => prevScene.classList.add('active')
+                    }, `scene-${i}-start`)
+                    // Fade in current
+                    .to(scene, {
+                        autoAlpha: 1,
+                        y: 0,
+                        scale: 1,
+                        duration: 1,
+                        ease: "power2.inOut",
+                        onStart: () => scene.classList.add('active'),
+                        onReverseComplete: () => scene.classList.remove('active')
+                    }, `scene-${i}-start`); // Start at the same time to crossfade
+            }
+        });
+    }
+
+</script>
+</body></html>

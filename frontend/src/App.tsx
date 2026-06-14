@@ -24,6 +24,8 @@ import MockInterviewPage from './pages/MockInterviewPage';
 import RepoAskPage from './pages/RepoAskPage';
 import RepoMapPage from './pages/RepoMapPage';
 import CliLoginPage from './pages/CliLoginPage';
+import FeaturesPage from './pages/FeaturesPage';
+import BountiesPage from './pages/BountiesPage';
 
 // Layout wrapper with sidebar
 import {
@@ -172,6 +174,8 @@ export default function App() {
             <Routes>
               {/* Public */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/bounties" element={<BountiesPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/cli-login" element={<CliLoginPage />} />
 

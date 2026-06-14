@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeFlow — Codebase Intelligence & Bug Bounty Platform</title>
+  <meta name="description" content="Import repositories, get AI-powered insights, 3D codebase maps, and automated DevOps architectures. Post issues with bounties and reward developers who fix your code." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- CDN Scripts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
+  <script>window.Motion = window.FramerMotion;</script>
+
+  <script>
+    // Suppress benign Framer Motion list-key warnings
+    const _origError = console.error;
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('Each child in a list')) return;
+      _origError(...args);
+    };
+  </script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ["'Instrument Serif'", 'serif'],
+            body: ["'Barlow'", 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '9999px',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #000; font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+
+    /* ── Liquid Glass ── */
+    .liquid-glass {
+      background: rgba(255,255,255,0.01);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: none;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .liquid-glass::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.45) 0%,
+        rgba(255,255,255,0.15) 20%,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,0) 60%,
+        rgba(255,255,255,0.15) 80%,
+        rgba(255,255,255,0.45) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .liquid-glass-strong {
+      background: rgba(255,255,255,0.01);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      border: none;
+      box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .liquid-glass-strong::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.5) 0%,
+        rgba(255,255,255,0.2) 20%,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,0) 60%,
+        rgba(255,255,255,0.2) 80%,
+        rgba(255,255,255,0.5) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- ── FadingVideo Component ── -->
+  <script type="text/babel">
+    const { useRef, useEffect } = React;
+    const FADE_MS = 500;
+    const FADE_OUT_LEAD = 0.55;
+
+    function FadingVideo({ src, className, style }) {
+      const videoRef = useRef(null);
+      const rafRef = useRef(null);
+      const fadingOutRef = useRef(false);
+
+      function fadeTo(video, target, duration) {
+        cancelAnimationFrame(rafRef.current);
+        const start = performance.now();
+        const startOpacity = parseFloat(video.style.opacity) || 0;
+
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          video.style.opacity = startOpacity + (target - startOpacity) * progress;
+          if (progress < 1) {
+            rafRef.current = requestAnimationFrame(tick);
+          }
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      }
+
+      useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        video.style.opacity = '0';
+
+        function onLoadedData() {
+          video.style.opacity = '0';
+          video.play().catch(() => {});
+          fadeTo(video, 1, FADE_MS);
+        }
+
+        function onTimeUpdate() {
+          const remaining = video.duration - video.currentTime;
+          if (!fadingOutRef.current && remaining <= FADE_OUT_LEAD && remaining > 0) {
+            fadingOutRef.current = true;
+            fadeTo(video, 0, FADE_MS);
+          }
+        }
+
+        function onEnded() {
+          video.style.opacity = '0';
+          setTimeout(() => {
+            video.currentTime = 0;
+            video.play().catch(() => {});
+            fadingOutRef.current = false;
+            fadeTo(video, 1, FADE_MS);
+          }, 100);
+        }
+
+        video.addEventListener('loadeddata', onLoadedData);
+        video.addEventListener('timeupdate', onTimeUpdate);
+        video.addEventListener('ended', onEnded);
+
+        return () => {
+          cancelAnimationFrame(rafRef.current);
+          video.removeEventListener('loadeddata', onLoadedData);
+          video.removeEventListener('timeupdate', onTimeUpdate);
+          video.removeEventListener('ended', onEnded);
+        };
+      }, [src]);
+
+      return (
+        <video
+          ref={videoRef}
+          src={src}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          className={className}
+          style={{ ...style, opacity: 0 }}
+        />
+      );
+    }
+
+    window.FadingVideo = FadingVideo;
+  </script>
+
+  <!-- ── BlurText Component ── -->
+  <script type="text/babel">
+    const { useRef: useRefBT, useEffect: useEffectBT, useState: useStateBT } = React;
+    const { motion } = window.Motion;
+
+    function BlurText({ text, className }) {
+      const [isVisible, setIsVisible] = useStateBT(false);
+      const ref = useRefBT(null);
+
+      useEffectBT(() => {
+        const observer = new IntersectionObserver(
+          ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+          { threshold: 0.1 }
+        );
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+      }, []);
+
+      const words = text.split(' ');
+
+      return (
+        <p
+          ref={ref}
+          className={className}
+          style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', rowGap: '0.1em' }}
+        >
+          {words.map((word, i) => (
+            <motion.span
+              key={i}
+              initial={{ filter: 'blur(10px)', opacity: 0, y: 50 }}
+              animate={isVisible ? {
+                filter: ['blur(10px)', 'blur(5px)', 'blur(0px)'],
+                opacity: [0, 0.5, 1],
+                y: [50, -5, 0],
+              } : {}}
+              transition={{
+                duration: 0.7,
+                delay: (i * 100) / 1000,
+                times: [0, 0.5, 1],
+                ease: 'easeOut',
+              }}
+              style={{ display: 'inline-block', marginRight: '0.28em' }}
+            >
+              {word}
+            </motion.span>
+          ))}
+        </p>
+      );
+    }
+
+    window.BlurText = BlurText;
+  </script>
+
+  <!-- ── Icons ── -->
+  <script type="text/babel">
+    function ArrowUpRight({ className }) {
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+        </svg>
+      );
+    }
+
+    function PlayIcon({ className }) {
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}>
+          <polygon points="6 4 20 12 6 20 6 4" />
+        </svg>
+      );
+    }
+
+    function GitBranchIcon() {
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:24,height:24}}>
+          <line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+          <path d="M18 9a9 9 0 0 1-9 9"/>
+        </svg>
+      );
+    }
+
+    function BugIcon() {
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:24,height:24}}>
+          <rect x="8" y="6" width="8" height="14" rx="4"/>
+          <path d="m19 7-3 2"/><path d="m5 7 3 2"/><path d="m19 19-3-2"/><path d="m5 19 3-2"/>
+          <path d="M20 13H4"/><path d="M8 4a2 2 0 0 1 4 0"/><path d="M12 4a2 2 0 0 1 4 0"/>
+        </svg>
+      );
+    }
+
+    function ZapIcon() {
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:24,height:24}}>
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      );
+    }
+
+    window.ArrowUpRight = ArrowUpRight;
+    window.PlayIcon = PlayIcon;
+    window.GitBranchIcon = GitBranchIcon;
+    window.BugIcon = BugIcon;
+    window.ZapIcon = ZapIcon;
+  </script>
+
+  <!-- ── Navbar ── -->
+  <script type="text/babel">
+    function Navbar() {
+      return (
+        <header
+          className="fixed top-4 left-0 right-0 z-50 flex items-center justify-between px-8 lg:px-16"
+          style={{ pointerEvents: 'none' }}
+        >
+          {/* Logo */}
+          <div
+            className="liquid-glass w-12 h-12 rounded-full flex items-center justify-center"
+            style={{ pointerEvents: 'auto', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <span className="font-heading italic text-white text-xl select-none">cf</span>
+          </div>
+
+          {/* Center nav — desktop */}
+          <div
+            className="liquid-glass hidden md:flex items-center rounded-full px-1.5 py-1.5 gap-1"
+            style={{ pointerEvents: 'auto' }}
+          >
+            {['Home', 'Features', 'Bounties', 'Intelligence', 'Pricing'].map((item) => (
+              <a
+                key={item}
+                href="#"
+                className="px-3 py-2 text-sm font-medium text-white/90 font-body rounded-full hover:bg-white/10 transition-colors duration-150"
+                style={{ whiteSpace: 'nowrap', textDecoration: 'none' }}
+              >
+                {item}
+              </a>
+            ))}
+            <a
+              href="#"
+              className="flex items-center gap-1.5 bg-white text-black text-sm font-medium font-body px-4 py-2 rounded-full whitespace-nowrap"
+              style={{ textDecoration: 'none' }}
+            >
+              Start Free
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+
+          {/* Right spacer */}
+          <div className="w-12 h-12" style={{ flexShrink: 0 }} />
+        </header>
+      );
+    }
+
+    window.Navbar = Navbar;
+  </script>
+
+  <!-- ── Hero Section ── -->
+  <script type="text/babel">
+    const { motion: motionHero } = window.Motion;
+
+    function HeroSection() {
+      return (
+        <section className="relative w-full bg-black overflow-hidden" style={{ height: '100vh' }}>
+          {/* Background video */}
+          <FadingVideo
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+            className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0"
+            style={{ width: '120%', height: '120%' }}
+          />
+
+          {/* z-10 layer */}
+          <div className="relative z-10 flex flex-col" style={{ height: '100%' }}>
+            <Navbar />
+
+            {/* Hero content — centered */}
+            <div className="flex-1 flex flex-col items-center justify-center pt-24 px-4">
+              {/* Badge */}
+              <motionHero.div
+                initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+                animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+                className="liquid-glass flex items-center gap-2 rounded-full mb-6"
+                style={{ padding: '6px 12px 6px 6px' }}
+              >
+                <span className="bg-white text-black px-3 py-1 rounded-full text-xs font-semibold font-body">New</span>
+                <span className="text-sm text-white/90 font-body pr-1">AI Code Review & Bug Bounty — Now Live</span>
+              </motionHero.div>
+
+              {/* Headline */}
+              <BlurText
+                text="Explore Debug Conquer Your Codebase"
+                className="text-6xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.8] max-w-3xl text-center tracking-[-4px]"
+              />
+
+              {/* Subheading */}
+              <motionHero.p
+                initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+                animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
+                className="mt-6 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight text-center"
+              >
+                Import any repository and instantly unlock AI-powered insights, 3D codebase maps, and automated DevOps blueprints. Post issues with bounties—reward developers who fix your code.
+              </motionHero.p>
+
+              {/* CTAs */}
+              <motionHero.div
+                initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+                animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.1, ease: 'easeOut' }}
+                className="flex items-center gap-6 mt-8"
+              >
+                <button className="liquid-glass-strong flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white font-body">
+                  Import Repository
+                  <ArrowUpRight className="h-5 w-5" />
+                </button>
+                <button className="flex items-center gap-2 text-sm font-medium text-white font-body">
+                  Watch Demo
+                  <PlayIcon className="h-4 w-4" />
+                </button>
+              </motionHero.div>
+
+              {/* Stats */}
+              <motionHero.div
+                initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+                animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.3, ease: 'easeOut' }}
+                className="flex items-stretch gap-4 mt-10"
+              >
+                {/* Stat 1 */}
+                <div className="liquid-glass p-5 flex flex-col justify-between" style={{ width: '220px', borderRadius: '1.25rem' }}>
+                  <div>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 28, height: 28 }}>
+                      <path d="M2 20h20M5 20V8l7-5 7 5v12M9 20v-5h6v5"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-heading italic text-white leading-none" style={{ fontSize: '2.25rem', letterSpacing: '-1px' }}>2.4K+</div>
+                    <div className="text-xs text-white font-body font-light mt-2">Issues Resolved on Platform</div>
+                  </div>
+                </div>
+                {/* Stat 2 */}
+                <div className="liquid-glass p-5 flex flex-col justify-between" style={{ width: '220px', borderRadius: '1.25rem' }}>
+                  <div>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 28, height: 28 }}>
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-heading italic text-white leading-none" style={{ fontSize: '2.25rem', letterSpacing: '-1px' }}>500+</div>
+                    <div className="text-xs text-white font-body font-light mt-2">Developers Active Globally</div>
+                  </div>
+                </div>
+              </motionHero.div>
+            </div>
+
+            {/* Partners */}
+            <motionHero.div
+              initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+              animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.4, ease: 'easeOut' }}
+              className="flex flex-col items-center gap-4 pb-8"
+            >
+              <div className="liquid-glass rounded-full text-xs font-medium text-white font-body" style={{ padding: '4px 14px' }}>
+                Trusted by teams building on GitHub
+              </div>
+              <div className="flex items-center" style={{ gap: '3rem' }}>
+                {['FastAPI', 'React', 'MongoDB', 'Redis', 'ChromaDB'].map((name) => (
+                  <span key={name} className="font-heading italic text-white text-2xl md:text-3xl" style={{ letterSpacing: '-0.02em' }}>
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </motionHero.div>
+          </div>
+        </section>
+      );
+    }
+
+    window.HeroSection = HeroSection;
+  </script>
+
+  <!-- ── Capabilities Section ── -->
+  <script type="text/babel">
+    const { motion: motionCaps, useInView } = window.Motion;
+    const { useRef: useRefCaps } = React;
+
+    const capCards = [
+      {
+        title: 'Repository Intelligence',
+        body: 'Ask natural language questions about any codebase. AI fetches the right code snippets via RAG and answers complex architectural decisions instantly.',
+        tags: ['Natural Language', 'Semantic Search', 'RAG Powered', 'Instant Answers'],
+        iconPath: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z',
+      },
+      {
+        title: 'Issue Bidding',
+        body: 'Solvers name their price for fixing bugs. Anyone can Boost Bounty on open issues to pledge reputation into the pool—making fixes more attractive.',
+        tags: ['Bounty System', 'Crowdfunding', 'Reputation Points', 'Fair Rewards'],
+        iconPath: 'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z',
+      },
+      {
+        title: 'AI Code Review',
+        body: 'Every submitted code patch is instantly analyzed by AI. Beautifully styled review comments with security, performance, and quality insights posted automatically.',
+        tags: ['Auto Review', 'Security Scan', 'Quality Check', 'Instant Feedback'],
+        iconPath: 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+      },
+    ];
+
+    function CapabilityCard({ card, index }) {
+      const ref = useRefCaps(null);
+      const inView = useInView(ref, { once: true, margin: '-80px' });
+
+      return (
+        <motionCaps.div
+          ref={ref}
+          initial={{ opacity: 0, y: 40 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: index * 0.15, ease: 'easeOut' }}
+          className="liquid-glass flex flex-col"
+          style={{ borderRadius: '1.25rem', padding: '1.5rem', minHeight: '360px' }}
+        >
+          {/* Top row */}
+          <div className="flex items-start justify-between gap-4">
+            {/* Icon */}
+            <div
+              className="liquid-glass flex items-center justify-center flex-shrink-0"
+              style={{ width: 44, height: 44, borderRadius: '0.75rem' }}
+            >
+              <svg viewBox="0 0 24 24" fill="white" style={{ width: 24, height: 24 }}>
+                <path d={card.iconPath} />
+              </svg>
+            </div>
+            {/* Tags */}
+            <div className="flex flex-wrap justify-end gap-1.5" style={{ maxWidth: '70%' }}>
+              {card.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="liquid-glass rounded-full text-white/90 font-body whitespace-nowrap"
+                  style={{ padding: '4px 12px', fontSize: '11px' }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Bottom */}
+          <div className="mt-6">
+            <h3 className="font-heading italic text-white leading-none" style={{ fontSize: 'clamp(1.75rem, 3vw, 2.25rem)', letterSpacing: '-1px' }}>
+              {card.title}
+            </h3>
+            <p className="mt-3 text-sm text-white/90 font-body font-light leading-snug" style={{ maxWidth: '32ch' }}>
+              {card.body}
+            </p>
+          </div>
+        </motionCaps.div>
+      );
+    }
+
+    function CapabilitiesSection() {
+      const headerRef = useRefCaps(null);
+      const headerInView = useInView(headerRef, { once: true, margin: '-80px' });
+
+      return (
+        <section className="relative min-h-screen bg-black overflow-hidden">
+          {/* Background video */}
+          <FadingVideo
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4"
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+
+          {/* Content */}
+          <div className="relative z-10 px-8 md:px-16 lg:px-20 pt-24 pb-10 flex flex-col min-h-screen">
+            {/* Header */}
+            <div className="mb-auto" ref={headerRef}>
+              <motionCaps.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={headerInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="text-sm font-body text-white/80 mb-6"
+              >
+                // Capabilities
+              </motionCaps.p>
+
+              <motionCaps.h2
+                initial={{ opacity: 0, y: 30 }}
+                animate={headerInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+                className="font-heading italic text-white"
+                style={{ fontSize: 'clamp(3.5rem, 7vw, 6rem)', lineHeight: '0.9', letterSpacing: '-3px' }}
+              >
+                Intelligence<br />unlocked
+              </motionCaps.h2>
+            </div>
+
+            {/* Cards grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+              {capCards.map((card, i) => (
+                <CapabilityCard key={card.title} card={card} index={i} />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    window.CapabilitiesSection = CapabilitiesSection;
+  </script>
+
+  <!-- ── Features Strip Section ── -->
+  <script type="text/babel">
+    const { motion: motionFS, useInView: useInViewFS } = window.Motion;
+    const { useRef: useRefFS } = React;
+
+    const featureStrip = [
+      { label: '3D Codebase Maps', icon: '🌌', desc: 'Visualize your entire repository as an interactive 3D network graph.' },
+      { label: 'Mock Interviews', icon: '🎤', desc: 'Get grilled by a Senior AI Engineer on your own codebase architecture.' },
+      { label: 'DevOps Blueprints', icon: '🏗️', desc: 'Auto-generate system architecture diagrams from your tech stack.' },
+      { label: 'Streaks & Portfolios', icon: '🔥', desc: 'Maintain daily streaks and build a verified portfolio of resolved bugs.' },
+    ];
+
+    function FeaturesStrip() {
+      const ref = useRefFS(null);
+      const inView = useInViewFS(ref, { once: true, margin: '-60px' });
+
+      return (
+        <section className="relative bg-black py-24 px-8 md:px-16" ref={ref}>
+          <motionFS.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-sm font-body text-white/50 mb-4 text-center"
+          >
+            // More Features
+          </motionFS.p>
+          <motionFS.h2
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="font-heading italic text-white text-center mb-16"
+            style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', letterSpacing: '-2px', lineHeight: '1' }}
+          >
+            Built for developers,<br/>powered by AI
+          </motionFS.h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {featureStrip.map((f, i) => (
+              <motionFS.div
+                key={f.label}
+                initial={{ opacity: 0, y: 40 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.15 + i * 0.1, ease: 'easeOut' }}
+                className="liquid-glass p-6 flex flex-col gap-4"
+                style={{ borderRadius: '1.25rem' }}
+              >
+                <span style={{ fontSize: '2rem' }}>{f.icon}</span>
+                <h3 className="font-heading italic text-white text-xl">{f.label}</h3>
+                <p className="text-sm text-white/70 font-body font-light leading-snug">{f.desc}</p>
+              </motionFS.div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    window.FeaturesStrip = FeaturesStrip;
+  </script>
+
+  <!-- ── CTA Section ── -->
+  <script type="text/babel">
+    const { motion: motionCTA, useInView: useInViewCTA } = window.Motion;
+    const { useRef: useRefCTA } = React;
+
+    function CTASection() {
+      const ref = useRefCTA(null);
+      const inView = useInViewCTA(ref, { once: true, margin: '-60px' });
+
+      return (
+        <section ref={ref} className="relative bg-black py-32 px-8 flex flex-col items-center text-center overflow-hidden">
+          {/* subtle radial glow */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 70%)'
+          }} />
+
+          <motionCTA.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="liquid-glass flex items-center gap-2 rounded-full mb-8"
+            style={{ padding: '6px 12px 6px 6px' }}
+          >
+            <span className="bg-white text-black px-3 py-1 rounded-full text-xs font-semibold font-body">Free</span>
+            <span className="text-sm text-white/90 font-body pr-1">Connect GitHub. Start in minutes.</span>
+          </motionCTA.div>
+
+          <motionCTA.h2
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="font-heading italic text-white max-w-2xl"
+            style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', lineHeight: '0.9', letterSpacing: '-3px' }}
+          >
+            Ready to master your codebase?
+          </motionCTA.h2>
+
+          <motionCTA.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="mt-6 text-base text-white/70 font-body font-light max-w-lg leading-relaxed"
+          >
+            Join 500+ developers already resolving issues, earning bounties, and getting AI-powered insights on their repositories.
+          </motionCTA.p>
+
+          <motionCTA.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="flex items-center gap-6 mt-10"
+          >
+            <button className="liquid-glass-strong flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white font-body">
+              Get Started Free
+              <ArrowUpRight className="h-5 w-5" />
+            </button>
+            <a
+              href="https://codeflow-backend-vh3s.onrender.com/docs"
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-medium text-white/70 font-body hover:text-white transition-colors"
+              style={{ textDecoration: 'none' }}
+            >
+              View API Docs →
+            </a>
+          </motionCTA.div>
+        </section>
+      );
+    }
+
+    window.CTASection = CTASection;
+  </script>
+
+  <!-- ── Footer ── -->
+  <script type="text/babel">
+    function Footer() {
+      return (
+        <footer className="bg-black border-t px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center gap-3">
+            <div className="liquid-glass w-8 h-8 rounded-full flex items-center justify-center">
+              <span className="font-heading italic text-white text-sm">cf</span>
+            </div>
+            <span className="text-white/40 text-sm font-body">© 2026 CodeFlow. Built for developers.</span>
+          </div>
+          <div className="flex items-center gap-8">
+            {['Features', 'Docs', 'Leaderboard', 'GitHub'].map((item) => (
+              <a key={item} href="#" className="text-white/40 text-sm font-body hover:text-white/80 transition-colors" style={{ textDecoration: 'none' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+        </footer>
+      );
+    }
+
+    window.Footer = Footer;
+  </script>
+
+  <!-- ── App Root ── -->
+  <script type="text/babel">
+    function App() {
+      return (
+        <React.Fragment>
+          <HeroSection />
+          <CapabilitiesSection />
+          <FeaturesStrip />
+          <CTASection />
+          <Footer />
+        </React.Fragment>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

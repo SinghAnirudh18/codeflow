@@ -1,3 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  /* Landing page color palette (Material Design 3 inspired) */
+  --color-on-tertiary-container: #9100c4;
+  --color-tertiary: #fce6ff;
+  --color-surface-container-lowest: #0e0e0f;
+  --color-surface: #131314;
+  --color-surface-dim: #131314;
+  --color-primary-fixed-dim: #00daf3;
+  --color-on-secondary-container: #007243;
+  --color-error-container: #93000a;
+  --color-tertiary-container: #f0c0ff;
+  --color-on-secondary: #00391f;
+  --color-inverse-primary: #006875;
+  --color-surface-tint: #00daf3;
+  --color-primary: #c3f5ff;
+  --color-on-primary-container: #00626e;
+  --color-surface-container: #201f20;
+  --color-tertiary-fixed: #f8d8ff;
+  --color-on-secondary-fixed-variant: #00522f;
+  --color-on-primary-fixed: #001f24;
+  --color-error: #ffb4ab;
+  --color-surface-container-low: #1c1b1c;
+  --color-outline: #849396;
+  --color-on-error: #690005;
+  --color-surface-container-high: #2a2a2b;
+  --color-tertiary-fixed-dim: #ecb2ff;
+  --color-on-tertiary-fixed-variant: #74009f;
+  --color-on-surface-variant: #bac9cc;
+  --color-background: #131314;
+  --color-primary-container: #00e5ff;
+  --color-on-primary-fixed-variant: #004f58;
+  --color-secondary-fixed-dim: #00e38b;
+  --color-on-background: #e5e2e3;
+  --color-on-error-container: #ffdad6;
+  --color-secondary-fixed: #56ffa8;
+  --color-inverse-on-surface: #313031;
+  --color-primary-fixed: #9cf0ff;
+  --color-secondary: #f5fff4;
+  --color-on-surface: #e5e2e3;
+  --color-on-tertiary-fixed: #320047;
+  --color-surface-container-highest: #353436;
+  --color-outline-variant: #3b494c;
+  --color-secondary-container: #16ff9e;
+  --color-on-tertiary: #520071;
+  --color-on-secondary-fixed: #002110;
+  --color-inverse-surface: #e5e2e3;
+  --color-surface-variant: #353436;
+  --color-surface-bright: #3a393a;
+  --color-on-primary: #00363d;
+
+  /* Fonts */
+  --font-label-code: "JetBrains Mono", monospace;
+  --font-label-caps: "Geist", sans-serif;
+  --font-body-lg: "Geist", sans-serif;
+  --font-display-lg: "Geist", sans-serif;
+  --font-headline-lg-mobile: "Geist", sans-serif;
+  --font-headline-lg: "Geist", sans-serif;
+  --font-headline-md: "Geist", sans-serif;
+  --font-body-md: "Geist", sans-serif;
+  --font-heading: "Instrument Serif", serif;
+
+  /* Spacing */
+  --spacing-gutter: 24px;
+  --spacing-bento-gap: 16px;
+  --spacing-unit: 4px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 40px;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
@@ -613,9 +684,74 @@ code, pre {
 .status-error { background: var(--error); }
 
 /* ── Glassmorphism panel ─────────── */
-.glass {
-  background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+/* ── GSAP Scrollytelling Specific Styles ── */
+.liquid-glass {
+  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.01);
+  position: relative;
+}
+
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.01));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+}
+
+.gsap-anim {
+  will-change: transform, opacity;
+}
+
+.scene-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 4rem 0;
+  width: 100%;
+}
+
+.js-enabled #scrolly-container {
+  height: 600vh;
+}
+
+.js-enabled #pinned-content {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  width: 100%;
+}
+
+.js-enabled .scene-content {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  z-index: 0;
+}
+
+.js-enabled .scene-content.active {
+  pointer-events: auto;
+  visibility: visible;
+  z-index: 10;
+}
+
+.js-enabled #scene-1 {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 10;
 }
