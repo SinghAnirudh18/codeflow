@@ -96,7 +96,7 @@ export default function LandingNavbar() {
           }}
         >
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-            <img src={logoUrl} alt="CodeFlow" style={{ height: '2.25rem', width: 'auto', objectFit: 'contain' }} />
+            <img src={logoUrl} alt="Codeski" style={{ height: '2.25rem', width: 'auto', objectFit: 'contain' }} />
           </Link>
 
           <div className="nav-links-custom" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>

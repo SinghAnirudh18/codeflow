@@ -100,7 +100,7 @@ function Sidebar() {
             <Code2 size={18} style={{ color: 'var(--silver-300)' }} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--silver-50)', letterSpacing: '-0.02em' }}>CodeFlow</div>
+            <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--silver-50)', letterSpacing: '-0.02em' }}>Codeski</div>
             <div style={{ fontSize: '9px', color: 'var(--silver-600)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bug Bounty</div>
           </div>
         </Link>

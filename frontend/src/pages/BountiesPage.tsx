@@ -15,7 +15,7 @@ const steps = [
   {
     step: '02',
     title: 'Submit a reviewed patch',
-    desc: 'Attach your fix, explain the tradeoffs, and let CodeFlow run an AI quality pass before maintainers review it.',
+    desc: 'Attach your fix, explain the tradeoffs, and let Codeski run an AI quality pass before maintainers review it.',
     icon: GitPullRequest,
   },
   {
@@ -129,7 +129,7 @@ export default function BountiesPage() {
               color: '#8a9699',
               marginBottom: '2.5rem',
             }}>
-              CodeFlow turns issue resolution into a structured marketplace: clear context for solvers, reviewed submissions for owners, and verified proof of work for contributors.
+              Codeski turns issue resolution into a structured marketplace: clear context for solvers, reviewed submissions for owners, and verified proof of work for contributors.
             </p>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>

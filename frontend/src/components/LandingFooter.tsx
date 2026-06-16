@@ -11,7 +11,7 @@ export default function LandingFooter() {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-cyan-200">
               <Code2 size={16} />
             </span>
-            <span className="font-black">CodeFlow</span>
+            <span className="font-black">Codeski</span>
           </Link>
           <p className="mt-3 max-w-md">
             Collaborative code intelligence, repository bounties, and verified developer portfolios.

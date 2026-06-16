@@ -54,7 +54,7 @@ export default function Navbar() {
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--silver-50)', letterSpacing: '-0.02em' }}>
-                CodeFlow
+                Codeski
               </div>
               <div style={{ fontSize: '10px', color: 'var(--silver-600)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Bug Bounty Platform

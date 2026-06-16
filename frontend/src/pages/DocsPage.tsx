@@ -8,7 +8,7 @@ import { API_BASE } from '../lib/api';
 const guides = [
   {
     title: 'Connect GitHub',
-    desc: 'Authenticate, import repositories, and keep issue data synced with CodeFlow.',
+    desc: 'Authenticate, import repositories, and keep issue data synced with Codeski.',
     icon: KeyRound,
     color: '#00daf3',
     colorDim: 'rgba(0,218,243,0.12)',
@@ -239,9 +239,9 @@ export default function DocsPage() {
               fontSize: '0.82rem',
               lineHeight: 2.2,
             }}>
-              <p style={{ color: '#64748b' }}>$ codeflow auth login</p>
-              <p style={{ color: '#a5f3fc' }}>$ codeflow repos import owner/project</p>
-              <p style={{ color: '#64748b' }}>$ codeflow ask "where does auth redirect?"</p>
+              <p style={{ color: '#64748b' }}>$ codeski auth login</p>
+              <p style={{ color: '#a5f3fc' }}>$ codeski repos import owner/project</p>
+              <p style={{ color: '#64748b' }}>$ codeski ask "where does auth redirect?"</p>
             </div>
             <div style={{
               marginTop: '1.25rem',

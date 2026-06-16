@@ -129,6 +129,7 @@ export default function LandingPage() {
               ease: 'power3.out',
             },
             0.2,
+            0,
           );
         }
 
@@ -147,14 +148,14 @@ export default function LandingPage() {
         masterTL
           .addLabel(label)
           .add(makeSceneOut(sceneEls[i - 1]), label)
-          .add(makeSceneIn(sceneEls[i], i), `${label}+=0.15`);
+          .add(makeSceneIn(sceneEls[i], i), `${label}+=0.2`);
       }
 
       ScrollTrigger.create({
         trigger: '#scroll-root',
         start: 'top top',
         end: 'bottom bottom',
-        scrub: true,
+        scrub: 1.2,
         pin: '#pin-wrap',
         anticipatePin: 1,
         onUpdate(self) {
@@ -438,7 +439,7 @@ export default function LandingPage() {
           color: #66eaff;
           filter: drop-shadow(0 0 8px rgba(102,234,255,0.4));
           margin-bottom: 1rem;
-          display: block;
+          display: block !important;
           font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
         }
         .feat-icon-docs {
@@ -696,9 +697,9 @@ export default function LandingPage() {
       <footer style={{ position: 'relative', zIndex: 10, background: '#0a0a0b', borderTop: '1px solid rgba(59,73,76,0.4)', padding: '4rem 2.5rem' }}>
         <div className="footer-grid" style={{ maxWidth: '72rem', margin: '0 auto', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '2rem' }}>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e5e2e3', marginBottom: '0.5rem' }}>CodeFlow</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e5e2e3', marginBottom: '0.5rem' }}>Codeski</div>
             <p style={{ fontSize: '0.875rem', color: '#8a9699', lineHeight: 1.6 }}>
-              © 2024 CodeFlow.
+              © 2024 Codeski.
               <br />
               Fix bugs. Build together. Earn rewards.
             </p>

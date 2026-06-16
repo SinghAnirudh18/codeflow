@@ -244,7 +244,7 @@ export default function RepoMapPage() {
       <div style={{ padding: '12px 20px', borderBottom: '1px solid #1f2937', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#161b22' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Link to={id ? `/repos/${id}` : '/repos'} style={{ color: '#8b949e', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-            <ArrowLeft size={16} /> <span style={{ color: '#00ff9d' }}>CODEFLOW</span>
+            <ArrowLeft size={16} /> <span style={{ color: '#00ff9d' }}>CODESKI</span>
           </Link>
           <div style={{ padding: '4px 12px', background: '#0f1015', border: '1px solid #30363d', borderRadius: '6px', fontSize: '13px', color: '#c9d1d9' }}>
             {repoName}

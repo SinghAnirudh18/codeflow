@@ -524,7 +524,7 @@ export default function SolutionDetailPage() {
             {solution.comments.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
                 {solution.comments.map((c, idx) => {
-                  const isAI = c.author_username === 'CodeFlow AI';
+                  const isAI = c.author_username === 'Codeski AI';
                   return (
                     <div key={idx} style={{ display: 'flex', gap: '12px' }}>
                       <Avatar name={c.author_username} />
