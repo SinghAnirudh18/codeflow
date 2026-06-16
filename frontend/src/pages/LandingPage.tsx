@@ -326,7 +326,7 @@ export default function LandingPage() {
           pointer-events: auto;
         }
         .grad-text {
-          background: linear-gradient(160deg, #ffffff 0%, rgba(255,255,255,0.55) 100%);
+          background: linear-gradient(160deg, #e0f7ff 0%, rgba(224,247,255,0.7) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -444,9 +444,9 @@ export default function LandingPage() {
           box-shadow: 0 0 6px rgba(0,218,243,0.7);
         }
         .feat-icon {
-          font-size: 2.5rem;
-          color: #00daf3;
-          filter: drop-shadow(0 0 10px rgba(0,218,243,0.5));
+          font-size: 2.2rem;
+          color: #66eaff;
+          filter: drop-shadow(0 0 8px rgba(102,234,255,0.4));
           margin-bottom: 1rem;
           display: block;
           font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
@@ -457,6 +457,11 @@ export default function LandingPage() {
           filter: blur(80px);
           pointer-events: none;
           z-index: 0;
+        }
+        .scene .s-text {
+          max-width: 100%;
+          padding: 0 1rem;
+          text-align: center;
         }
         .scene-img {
           width: 100%;
