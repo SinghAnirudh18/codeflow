@@ -136,20 +136,25 @@ export default function LandingPage() {
       };
 
       const makeSceneOut = (el: HTMLElement) =>
-        gsap.timeline().to(el, { autoAlpha: 0, y: -20, scale: 1.03, duration: 0.35, ease: 'power2.in' });
+        gsap.timeline().to(el, { autoAlpha: 0, y: -24, scale: 1.02, duration: 0.4, ease: 'power2.inOut' });
 
       const masterTL = gsap.timeline({ paused: true });
 
       for (let i = 1; i < sceneIds.length; i += 1) {
         const label = `t${i}`;
-        masterTL.addLabel(label).add(makeSceneOut(sceneEls[i - 1]), label).add(makeSceneIn(sceneEls[i], i), label);
+        // scene-out starts at the label; scene-in starts 0.15 into the out so there is
+        // a smooth crossfade overlap instead of an abrupt sequential cut.
+        masterTL
+          .addLabel(label)
+          .add(makeSceneOut(sceneEls[i - 1]), label)
+          .add(makeSceneIn(sceneEls[i], i), `${label}+=0.15`);
       }
 
       ScrollTrigger.create({
         trigger: '#scroll-root',
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 1.2,
+        scrub: true,
         pin: '#pin-wrap',
         anticipatePin: 1,
         onUpdate(self) {
@@ -240,7 +245,11 @@ export default function LandingPage() {
           background: #0e0e0f;
           color: #e5e2e3;
           font-family: 'Geist', sans-serif;
+          padding-bottom: 8rem;
           overflow-x: hidden;
+        }
+        .ani-footer {
+          padding: 6rem 2.5rem;
         }
         .ani-bg {
           position: fixed;
@@ -278,7 +287,9 @@ export default function LandingPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 6rem 1.5rem 2rem;
+          /* top padding clears the navbar, bottom padding reserves space for
+             the absolute-positioned #scroll-indicator so it never overlaps buttons */
+          padding: 6rem 1.5rem 7rem;
           pointer-events: none;
         }
         .scene.s-center { flex-direction: column; text-align: center; }
@@ -360,7 +371,7 @@ export default function LandingPage() {
         }
         #scroll-indicator {
           position: absolute;
-          bottom: 2.5rem;
+          bottom: 3rem;
           left: 50%;
           transform: translateX(-50%);
           display: flex;
@@ -372,6 +383,9 @@ export default function LandingPage() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(186,201,204,0.5);
+          /* Always visually centered because scene padding-bottom keeps
+             the content above this element on all viewport heights */
+          z-index: 1;
         }
         .scroll-mouse {
           width: 1.25rem;
