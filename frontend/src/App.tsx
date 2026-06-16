@@ -26,6 +26,7 @@ import RepoMapPage from './pages/RepoMapPage';
 import CliLoginPage from './pages/CliLoginPage';
 import FeaturesPage from './pages/FeaturesPage';
 import BountiesPage from './pages/BountiesPage';
+import DocsPage from './pages/DocsPage';
 
 // Layout wrapper with sidebar
 import {
@@ -175,6 +176,7 @@ export default function App() {
               {/* Public */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/docs" element={<DocsPage />} />
               <Route path="/bounties" element={<BountiesPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/cli-login" element={<CliLoginPage />} />

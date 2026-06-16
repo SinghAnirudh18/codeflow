@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Hls from 'hls.js';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE } from '../lib/api';
+import LandingNavbar from '../components/LandingNavbar';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -203,17 +204,7 @@ export default function LandingPage() {
         },
       });
 
-      ScrollTrigger.create({
-        start: '50px top',
-        onEnter() {
-          const nav = document.getElementById('nav-inner');
-          if (nav) nav.style.background = 'rgba(14,14,15,0.7)';
-        },
-        onLeaveBack() {
-          const nav = document.getElementById('nav-inner');
-          if (nav) nav.style.background = '';
-        },
-      });
+      // Scroll background color transition is managed autonomously inside LandingNavbar component
 
       ScrollTrigger.create({
         trigger: '#scroll-root',
@@ -303,28 +294,13 @@ export default function LandingPage() {
           border-radius: 1.5rem;
           padding: 0.5rem;
           box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 32px 64px rgba(0,0,0,0.5);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        #navbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 100;
-          display: flex;
-          justify-content: center;
-          padding: 1.5rem 1rem;
-          pointer-events: none;
+        .glass-card:hover {
+          transform: scale(1.03);
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset, 0 48px 96px rgba(0,0,0,0.7);
         }
-        .nav-inner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          max-width: 56rem;
-          padding: 0.625rem 1.25rem;
-          border-radius: 9999px;
-          pointer-events: auto;
-        }
+        /* Navbar styles moved to LandingNavbar component */
         .grad-text {
           background: linear-gradient(160deg, #e0f7ff 0%, rgba(224,247,255,0.7) 100%);
           -webkit-background-clip: text;
@@ -451,6 +427,14 @@ export default function LandingPage() {
           display: block;
           font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
         }
+        .feat-icon-docs {
+          color: #ff7eb9;
+          filter: drop-shadow(0 0 8px rgba(255,126,185,0.4));
+        }
+        .feat-icon-bounties {
+          color: #ffb400;
+          filter: drop-shadow(0 0 8px rgba(255,180,0,0.4));
+        }
         .orb {
           position: absolute;
           border-radius: 50%;
@@ -483,16 +467,7 @@ export default function LandingPage() {
           direction: ltr;
           font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
         }
-        .nav-link {
-          font-size: 0.7rem;
-          font-family: 'JetBrains Mono', monospace;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #8a9699;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .nav-link:hover { color: #00daf3; }
+        /* Navbar link styles moved to LandingNavbar component */
         .ani-btn {
           border-radius: 9999px;
           cursor: pointer;
@@ -550,37 +525,7 @@ export default function LandingPage() {
         <div className="orb" style={{ width: '35vw', height: '35vw', bottom: '10%', right: '-8%', background: 'rgba(0,180,200,0.05)' }} />
       </div>
 
-      <nav id="navbar">
-        <div className="nav-inner glass" id="nav-inner">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-            <img src={logoUrl} alt="CodeFlow" style={{ height: '2.25rem', width: 'auto', objectFit: 'contain' }} />
-          </Link>
-
-          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <Link className="nav-link" to="/">Product</Link>
-            <Link className="nav-link" to="/features">Features</Link>
-            <a className="nav-link" href={`${API_BASE}/docs`} target="_blank" rel="noreferrer">Docs</a>
-            <Link className="nav-link" to="/bounties">Bounties</Link>
-          </div>
-
-          <button
-            className="glass ani-btn"
-            onClick={login}
-            style={{
-              borderRadius: '9999px',
-              padding: '0.5rem 1.25rem',
-              fontSize: '0.7rem',
-              fontFamily: 'JetBrains Mono, monospace',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: '#00daf3',
-              border: '1px solid rgba(0,218,243,0.3)',
-            }}
-          >
-            Sign in with GitHub
-          </button>
-        </div>
-      </nav>
+      <LandingNavbar />
 
       <div id="progress-dots">
         {[0, 1, 2, 3, 4, 5].map((idx) => (
@@ -648,7 +593,7 @@ export default function LandingPage() {
             <div className="split rev">
               <div className="s-text">
                 <div className="eyebrow">Living Docs</div>
-                <span className="material-symbols-outlined feat-icon">architecture</span>
+                <span className="material-symbols-outlined feat-icon feat-icon-docs">architecture</span>
                 <h2 className="grad-text s-h2" style={{ fontSize: 'clamp(1.75rem,4vw,3.25rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
                   Automated
                   <br />
@@ -691,7 +636,7 @@ export default function LandingPage() {
           <section className="scene s-center" id="s5">
             <div style={{ maxWidth: '52rem', width: '100%' }}>
               <div className="eyebrow" style={{ justifyContent: 'center' }}>Earn While You Code</div>
-              <span className="material-symbols-outlined feat-icon" style={{ fontSize: '3rem' }}>monetization_on</span>
+              <span className="material-symbols-outlined feat-icon feat-icon-bounties" style={{ fontSize: '3rem' }}>monetization_on</span>
               <h2 className="grad-text" style={{ fontSize: 'clamp(2rem,5vw,3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '1.25rem' }}>
                 Earn Bounties.
                 <br />

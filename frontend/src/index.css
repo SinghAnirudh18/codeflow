@@ -755,3 +755,54 @@ code, pre {
   pointer-events: auto;
   z-index: 10;
 }
+
+/* Landing visual utilities (used by Landing, Features, Bounties pages) */
+.grad-text {
+  background: linear-gradient(160deg, #e0f7ff 0%, rgba(224,247,255,0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-top-color: rgba(255,255,255,0.18);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 32px 64px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset, 0 48px 96px rgba(0,0,0,0.6);
+}
+
+.glow {
+  text-shadow: 0 0 20px rgba(0,218,243,0.6), 0 0 40px rgba(0,218,243,0.25);
+}
+
+.glow-amber {
+  text-shadow: 0 0 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.2);
+}
+
+.orb-bg {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #00daf3;
+}

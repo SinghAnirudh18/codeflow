@@ -20,6 +20,7 @@ export default function LandingFooter() {
 
         <div className="flex flex-wrap gap-5 text-xs font-bold uppercase tracking-[0.14em]">
           <Link className="transition hover:text-cyan-200" to="/features">Features</Link>
+          <Link className="transition hover:text-cyan-200" to="/docs">Docs</Link>
           <Link className="transition hover:text-cyan-200" to="/bounties">Bounties</Link>
           <Link className="transition hover:text-cyan-200" to="/explore">Explore</Link>
           <a className="transition hover:text-cyan-200" href={`${API_BASE}/health`} target="_blank" rel="noreferrer">Health</a>
