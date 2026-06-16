@@ -12,7 +12,8 @@ export default function CliLoginPage() {
     if (!token) return;
     setStatus('loading');
     try {
-      const res = await fetch('http://localhost:3456/callback', {
+      const cliUrl = import.meta.env.VITE_CLI_CALLBACK_URL || 'http://localhost:3456/callback';
+      const res = await fetch(cliUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
