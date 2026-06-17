@@ -10,5 +10,6 @@ export default defineConfig(({ mode }) => {
     server: {
       port: env.PORT ? parseInt(env.PORT) : 5173,
     },
+    base:process.env.VITE_BASE_PATH||"/codeflow"
   };
 });
