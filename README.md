@@ -4,6 +4,10 @@ A collaborative, gamified codebase intelligence and bug bounty platform.
 
 CodeFlow allows you to import repositories and instantly get AI-powered insights, 3D codebase maps, and automated DevOps architectures. It also serves as a platform to post issues with bounties, and rewards developers for submitting verified solutions. With integrated AI code review, repository intelligence, and a unique issue bidding system, CodeFlow makes open-source collaboration fun, rewarding, and incredibly efficient.
 
+**🌍 Live Demo:** [https://codski.qzz.io](https://codski.qzz.io)
+**🔌 Backend API:** [https://codeflow-backend-vh3s.onrender.com](https://codeflow-backend-vh3s.onrender.com)
+
+
 ## 📸 Screenshots
 
 ![Screenshot 1](screenshot/Screenshot%202026-06-13%20052356.png)
